@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SunsetBoost.exe: a porta de entrada com admin (atalhos e "Abrir junto com o Windows").
+    É compilado com NativeAOT: um .exe nativo, sem runtime do .NET pra ser trocado por DOTNET_ROOT nem profiler pra
+    ser carregado por CORECLR_PROFILER_PATH. Um app .NET comum aberto com admin aceitaria essas variáveis, que qualquer
+    programa do usuário grava em HKCU\Environment. O launcher abre o SunsetBoost.App.exe com um ambiente só com as
+    variáveis do sistema (HKLM).
+    Publicar precisa do C++ das Ferramentas de Build do Visual Studio (o linker do NativeAOT). Compilar e testar, não.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>SunsetBoost</AssemblyName>
+    <RootNamespace>SunsetBoost.Launcher</RootNamespace>
+    <AssemblyTitle>Sunset Boost</AssemblyTitle>
+    <!-- Só P/Invoke do Windows: dispensa as projeções do SDK do Windows 10 que os outros projetos usam -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <PublishAot>true</PublishAot>
+    <IsAotCompatible>true</IsAotCompatible>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <OptimizationPreference>Size</OptimizationPreference>
+    <ApplicationManifest>launcher.manifest</ApplicationManifest>
+    <ApplicationIcon>..\SunsetBoost.App\Assets\sunset.ico</ApplicationIcon>
+  </PropertyGroup>
+
+</Project>

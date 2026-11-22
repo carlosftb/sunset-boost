@@ -1,0 +1,416 @@
+<Window x:Class="SunsetBoost.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:SunsetBoost.App.Controls"
+        xmlns:local="clr-namespace:SunsetBoost.App"
+        Title="Sunset Boost" Icon="Assets/sunset.ico" Width="1040" Height="640"
+        WindowStyle="None" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Night}" UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Ideal" FontFamily="{StaticResource BodyFont}">
+    <Grid x:Name="Root" ClipToBounds="True">
+
+        <!-- ================= CENÁRIO ================= -->
+        <Rectangle>
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#140B2E" Offset="0" />
+                    <GradientStop Color="#3B1458" Offset="0.38" />
+                    <GradientStop Color="#A12A76" Offset="0.66" />
+                    <GradientStop Color="#FF6F5E" Offset="0.86" />
+                    <GradientStop Color="#FFB35C" Offset="1" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Ellipse x:Name="Sun" Width="360" Height="360" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,118" Opacity="0.55">
+            <Ellipse.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#FFE38A" Offset="0" />
+                    <GradientStop Color="#FF9A4D" Offset="0.45" />
+                    <GradientStop Color="#FF4F8B" Offset="1" />
+                </LinearGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+        <!-- Palmeiras desenhadas do zero -->
+        <Viewbox Width="230" Height="330" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-10,0,0,96" Opacity="0.92">
+            <Canvas Width="230" Height="330">
+                <Path Fill="#12071F" Data="M118,330 C112,250 116,170 132,95 L139,97 C125,171 122,249 128,330 Z" />
+                <Path Fill="#12071F" Data="M134,96 C104,72 60,66 16,82 C56,80 92,88 120,108 Z M134,96 C124,58 96,30 54,16 C86,36 108,64 120,100 Z M136,94 C156,62 188,44 228,42 C192,54 166,74 146,102 Z M136,96 C170,90 202,102 226,128 C196,114 166,108 136,108 Z M134,98 C112,112 98,136 92,168 C104,142 120,122 142,108 Z" />
+            </Canvas>
+        </Viewbox>
+        <Viewbox Width="270" Height="380" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-20,96" Opacity="0.92">
+            <Canvas Width="270" Height="380">
+                <Path Fill="#12071F" Data="M120,380 C128,284 142,194 170,110 L178,113 C152,195 138,283 130,380 Z" />
+                <Path Fill="#12071F" Data="M172,108 C138,80 86,72 32,90 C80,88 124,98 158,122 Z M172,108 C166,64 142,28 98,6 C130,32 150,68 158,112 Z M174,106 C200,72 238,52 284,52 C242,66 212,88 188,120 Z M174,110 C212,106 248,122 270,154 C238,136 204,128 172,126 Z M172,112 C148,130 132,158 128,196 C140,164 158,140 184,124 Z" />
+            </Canvas>
+        </Viewbox>
+        <Grid Height="130" VerticalAlignment="Bottom">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#5A1F6E" Offset="0" />
+                    <GradientStop Color="#2A0F45" Offset="1" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Viewbox Stretch="Fill">
+                <Canvas Width="1040" Height="130">
+                    <Path Stroke="#59FF8FC0" StrokeThickness="2" Data="M0,20 Q130,8 260,20 T520,20 T780,20 T1040,20" />
+                    <Path Stroke="#38FF8FC0" StrokeThickness="2" Data="M0,52 Q130,40 260,52 T520,52 T780,52 T1040,52" />
+                    <Path Stroke="#24FF8FC0" StrokeThickness="2" Data="M0,88 Q130,76 260,88 T520,88 T780,88 T1040,88" />
+                </Canvas>
+            </Viewbox>
+        </Grid>
+
+        <!-- ================= BARRA DE TÍTULO ================= -->
+        <Grid VerticalAlignment="Top" Height="30" Background="Transparent" MouseLeftButtonDown="TitleBar_MouseDown">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Style="{StaticResource ChromeButton}" Content="—" Click="Minimize_Click" ToolTip="Minimizar" />
+                <Button Style="{StaticResource ChromeButton}" Content="✕" Click="Close_Click" ToolTip="Fechar (continua perto do relógio)" />
+            </StackPanel>
+        </Grid>
+
+        <!-- ================= TOPO ================= -->
+        <DockPanel VerticalAlignment="Top" Margin="28,26,28,0" LastChildFill="False">
+            <StackPanel DockPanel.Dock="Left" Margin="0,0,26,0" IsHitTestVisible="False">
+                <StackPanel.RenderTransform><SkewTransform AngleX="-6" /></StackPanel.RenderTransform>
+                <TextBlock Text="SUNSET BOOST" FontFamily="{StaticResource TitleFont}" FontStyle="Italic" FontSize="32"
+                           Foreground="{StaticResource LogoBrush}" Effect="{StaticResource PinkGlow}" Padding="0,0,8,0" />
+                <TextBlock Text="V I C E   M O D E  ·  v 0 . 1" FontFamily="{StaticResource LabelFont}" FontSize="11" Foreground="#FFD9EC" />
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                <RadioButton x:Name="TabHome" Style="{StaticResource TabButton}" Content="INÍCIO" IsChecked="True" Checked="Tab_Checked" Tag="home" />
+                <RadioButton Style="{StaticResource TabButton}" Content="LIMPEZA" Checked="Tab_Checked" Tag="clean" />
+                <RadioButton Style="{StaticResource TabButton}" Content="MODO JOGO" Checked="Tab_Checked" Tag="game" />
+                <RadioButton Style="{StaticResource TabButton}" Content="PERFIS" Checked="Tab_Checked" Tag="prof" />
+                <RadioButton Style="{StaticResource TabButton}" Content="DIAGNÓSTICO" Checked="Tab_Checked" Tag="diag" />
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <c:CutBorder Cut="Corners" CutSize="8" BorderBrush="#803EE6FF" BorderThickness="1" Background="#99140B2E" Padding="12,4">
+                    <TextBlock x:Name="ProfilePill" Text="PERFIL · VALORANT" FontFamily="{StaticResource LabelFont}" FontSize="15" Foreground="{StaticResource Cyan}" />
+                </c:CutBorder>
+                <TextBlock x:Name="ModeLabel" HorizontalAlignment="Right" Margin="0,4,2,0" FontFamily="{StaticResource LabelFont}" FontSize="12" Foreground="{StaticResource Gold}" />
+            </StackPanel>
+        </DockPanel>
+
+        <!-- ================= TELAS ================= -->
+        <Grid Margin="28,96,28,26">
+
+            <!-- ===== INÍCIO ===== -->
+            <Grid x:Name="ScreenHome">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="330" />
+                    <ColumnDefinition Width="22" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <Grid Width="330" Height="330">
+                        <Ellipse Fill="#BF120826" Stroke="#26FFFFFF" Margin="7" />
+                        <Ellipse Stroke="#14FFFFFF" Margin="45" />
+                        <Ellipse Stroke="#14FFFFFF" Margin="85" />
+                        <Rectangle Height="1" Fill="#14FFFFFF" Margin="7,0" />
+                        <Rectangle Width="1" Fill="#14FFFFFF" Margin="0,7" />
+                        <!-- Trilhas e arcos (o comprimento do arco é ajustado no código) -->
+                        <Ellipse Width="292" Height="292" Stroke="#26FF5FA2" StrokeThickness="12" />
+                        <Ellipse x:Name="ArcRam" Width="292" Height="292" Stroke="{StaticResource Pink}" StrokeThickness="12" RenderTransformOrigin="0.5,0.5" Effect="{StaticResource PinkGlow}">
+                            <Ellipse.RenderTransform><RotateTransform Angle="-90" /></Ellipse.RenderTransform>
+                        </Ellipse>
+                        <Ellipse Width="248" Height="248" Stroke="#26FF8A3D" StrokeThickness="12" />
+                        <Ellipse x:Name="ArcCpu" Width="248" Height="248" Stroke="{StaticResource Orange}" StrokeThickness="12" RenderTransformOrigin="0.5,0.5">
+                            <Ellipse.RenderTransform><RotateTransform Angle="-90" /></Ellipse.RenderTransform>
+                        </Ellipse>
+                        <Ellipse Width="204" Height="204" Stroke="#263EE6FF" StrokeThickness="12" />
+                        <Ellipse x:Name="ArcGpu" Width="204" Height="204" Stroke="{StaticResource Cyan}" StrokeThickness="12" RenderTransformOrigin="0.5,0.5">
+                            <Ellipse.RenderTransform><RotateTransform Angle="-90" /></Ellipse.RenderTransform>
+                        </Ellipse>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Style="{StaticResource H}" Text="RAM DISPONÍVEL" HorizontalAlignment="Center" />
+                            <TextBlock x:Name="FreeRam" Style="{StaticResource Big}" FontSize="44" Text="—" HorizontalAlignment="Center" />
+                            <TextBlock x:Name="TotalRam" Style="{StaticResource Small}" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0" TextBlock.FontFamily="{StaticResource LabelFont}" TextBlock.FontSize="16" TextBlock.Foreground="{StaticResource White}">
+                        <Rectangle Width="10" Height="10" Fill="{StaticResource Pink}" Margin="0,0,6,0" />
+                        <TextBlock Text="RAM " /><TextBlock x:Name="LRam" Text="—" Margin="0,0,16,0" />
+                        <Rectangle Width="10" Height="10" Fill="{StaticResource Orange}" Margin="0,0,6,0" />
+                        <TextBlock Text="CPU " /><TextBlock x:Name="LCpu" Text="—" Margin="0,0,16,0" />
+                        <Rectangle Width="10" Height="10" Fill="{StaticResource Cyan}" Margin="0,0,6,0" />
+                        <TextBlock Text="GPU " /><TextBlock x:Name="LGpu" Text="—" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <UniformGrid Columns="3" Margin="0,0,0,14">
+                        <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,0,6,0">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H}" Text="PROCESSOS" />
+                                <TextBlock x:Name="StatProc" Style="{StaticResource Big}" Text="—" FontSize="32" />
+                                <TextBlock Style="{StaticResource Small}" Text="rodando agora" />
+                            </StackPanel>
+                        </c:CutBorder>
+                        <c:CutBorder Style="{StaticResource PanelBox}" Margin="6,0">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H}" Text="PODE LIBERAR" />
+                                <TextBlock x:Name="StatFree" Style="{StaticResource Big}" Text="—" FontSize="32" Foreground="{StaticResource Gold}" />
+                                <TextBlock x:Name="StatFreeWho" Style="{StaticResource Small}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                            </StackPanel>
+                        </c:CutBorder>
+                        <c:CutBorder Style="{StaticResource PanelBox}" Margin="6,0,0,0">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource H}" Text="STANDBY" />
+                                <TextBlock x:Name="StatStandby" Style="{StaticResource Big}" Text="—" FontSize="32" />
+                                <TextBlock x:Name="StatStandbyInfo" Style="{StaticResource Small}" Text="cache do Windows" />
+                            </StackPanel>
+                        </c:CutBorder>
+                    </UniformGrid>
+
+                    <Button x:Name="Cta" Click="Cta_Click" Cursor="Hand" Margin="0,0,0,14" Effect="{StaticResource PinkGlow}">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <c:CutBorder x:Name="B" Cut="Parallelogram" CutSize="22" Background="{TemplateBinding Background}" Padding="30,18" BorderBrush="White" BorderThickness="2">
+                                    <ContentPresenter />
+                                </c:CutBorder>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="B" Property="Opacity" Value="0.92" /></Trigger>
+                                    <Trigger Property="IsPressed" Value="True"><Setter TargetName="B" Property="Opacity" Value="0.75" /></Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <StackPanel>
+                            <TextBlock x:Name="CtaTitle" Text="ENTRAR NO MODO JOGO" FontFamily="{StaticResource TitleFont}" FontStyle="Italic" FontSize="40" Foreground="{StaticResource Ink}" />
+                            <TextBlock x:Name="CtaSub" FontSize="13" FontWeight="SemiBold" Foreground="#3B1458" />
+                        </StackPanel>
+                    </Button>
+
+                    <c:CutBorder Style="{StaticResource PanelBox}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource H}" Text="QUEM ESTÁ COMENDO SUA RAM" Margin="0,0,0,8" />
+                            <ItemsControl x:Name="TopApps">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="4" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type local:TopAppVm}">
+                                        <StackPanel Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding Name}" Foreground="{StaticResource White}" FontSize="13" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Ram}" FontFamily="{StaticResource TitleFont}" FontStyle="Italic" FontSize="20" Foreground="{Binding RamBrush}" />
+                                            <TextBlock Text="{Binding Info}" Foreground="{StaticResource Soft}" FontSize="12" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </c:CutBorder>
+                </StackPanel>
+            </Grid>
+
+            <!-- ===== LIMPEZA ===== -->
+            <DockPanel x:Name="ScreenClean" Visibility="Collapsed">
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Style="{StaticResource H}" Text="LIMPEZA" />
+                        <TextBlock Style="{StaticResource Big}" FontSize="26">
+                            <Run Text="VAI LIBERAR " /><Run x:Name="CleanTotal" Text="—" Foreground="{StaticResource Gold}" />
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" TextBlock.FontFamily="{StaticResource LabelFont}" TextBlock.FontSize="15">
+                        <c:CutBorder CutSize="6" Background="{StaticResource Pink}" Padding="10,3" Margin="0,0,8,0"><TextBlock Text="✓ FECHA POR PADRÃO" Foreground="#2A0718" /></c:CutBorder>
+                        <c:CutBorder CutSize="6" Background="{StaticResource Gold}" Padding="10,3" Margin="0,0,8,0"><TextBlock Text="✋ VOCÊ DECIDE" Foreground="#3D2600" /></c:CutBorder>
+                        <c:CutBorder CutSize="6" Background="#2C2350" Padding="10,3"><TextBlock Text="🔒 NUNCA FECHA" Foreground="#A99BD6" /></c:CutBorder>
+                    </StackPanel>
+                </DockPanel>
+                <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+                    <Button x:Name="CleanBtn" Style="{StaticResource NeonButton}" Content="LIMPAR AGORA" Click="CleanNow_Click" DockPanel.Dock="Left" />
+                    <TextBlock Style="{StaticResource Small}" Foreground="#D7C4EF" FontSize="13" VerticalAlignment="Center" Margin="16,0,0,0"
+                               Text="Pede pra fechar → quem tem janela ganha até 3 s → o resto é forçado na hora. Nada da lista 🔒 é tocado." />
+                </DockPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="Cards">
+                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="4" VerticalAlignment="Top" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:AppCardVm}">
+                                <c:CutBorder Cut="TopRight" CutSize="18" Background="{StaticResource PanelSolid}" Margin="0,0,10,10" Height="96" Opacity="{Binding CardOpacity}">
+                                    <Grid>
+                                        <Rectangle Width="4" HorizontalAlignment="Left" Fill="{Binding Accent}" />
+                                        <StackPanel Margin="16,10,12,10">
+                                            <TextBlock Text="{Binding Name}" Foreground="{StaticResource White}" FontWeight="Bold" FontSize="14" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Ram}" FontFamily="{StaticResource TitleFont}" FontStyle="Italic" FontSize="24" Foreground="{StaticResource White}" Margin="0,2,0,0" />
+                                            <TextBlock Text="{Binding Info}" Foreground="#C3B0E3" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,0,46,0" />
+                                        </StackPanel>
+                                        <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding IsOn, Mode=TwoWay}" Visibility="{Binding Unlocked, Converter={StaticResource BoolToVis}}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10" />
+                                        <TextBlock Text="🔒 PROTEGIDO" Visibility="{Binding Locked, Converter={StaticResource BoolToVis}}" FontFamily="{StaticResource LabelFont}" FontSize="12"
+                                                   Foreground="#A99BD6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10" />
+                                    </Grid>
+                                </c:CutBorder>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+
+            <!-- ===== MODO JOGO ===== -->
+            <DockPanel x:Name="ScreenGame" Visibility="Collapsed">
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                    <StackPanel DockPanel.Dock="Left">
+                        <TextBlock Style="{StaticResource H}" Text="MODO JOGO" />
+                        <TextBlock Style="{StaticResource Big}" FontSize="26" Text="AJUSTES · TUDO REVERSÍVEL" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" TextBlock.FontFamily="{StaticResource LabelFont}" TextBlock.FontSize="14">
+                        <Border Style="{StaticResource Badge}" Background="{StaticResource Pink}" Margin="0,0,6,0"><TextBlock Text="ALTO" Foreground="#2A0718" /></Border>
+                        <Border Style="{StaticResource Badge}" Background="{StaticResource Orange}" Margin="0,0,6,0"><TextBlock Text="MÉDIO" Foreground="#3A1500" /></Border>
+                        <Border Style="{StaticResource Badge}" Background="{StaticResource Lavender}" Margin="0,0,6,0"><TextBlock Text="BAIXO" Foreground="White" /></Border>
+                        <Border Style="{StaticResource Badge}" Background="{StaticResource Cyan}"><TextBlock Text="CONFORTO" Foreground="#05313A" /></Border>
+                    </StackPanel>
+                </DockPanel>
+                <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+                    <Button x:Name="RestoreBtn" Style="{StaticResource GhostButton}" Content="↺ RESTAURAR TUDO" Click="Restore_Click" DockPanel.Dock="Left" />
+                    <TextBlock x:Name="SnapshotInfo" Style="{StaticResource Small}" Foreground="#D7C4EF" FontSize="13" VerticalAlignment="Center" Margin="16,0,0,0" />
+                </DockPanel>
+                <ItemsControl x:Name="TweakRows">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2" VerticalAlignment="Top" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:TweakRowVm}">
+                            <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,0,10,10" Padding="14,10" Height="62">
+                                <DockPanel>
+                                    <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding IsOn, Mode=TwoWay}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
+                                    <Border Style="{StaticResource Badge}" Background="{Binding ImpactBg}" DockPanel.Dock="Right" Margin="8,0,0,0">
+                                        <TextBlock Text="{Binding Impact}" Foreground="{Binding ImpactFg}" FontFamily="{StaticResource LabelFont}" FontSize="14" />
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}" Foreground="{StaticResource White}" FontWeight="Bold" FontSize="13.5" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}" />
+                                        <TextBlock Foreground="#C3B0E3" FontSize="12" TextTrimming="CharacterEllipsis" ToolTip="{Binding Detail}">
+                                            <Run Text="{Binding Note, Mode=OneWay}" Foreground="{StaticResource Mint}" /><Run Text="{Binding Detail, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </DockPanel>
+                            </c:CutBorder>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
+
+            <!-- ===== PERFIS ===== -->
+            <StackPanel x:Name="ScreenProf" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource H}" Text="PERFIS" />
+                <TextBlock Style="{StaticResource Big}" FontSize="26" Text="ESCOLHA O JOGO" Margin="0,0,0,12" />
+                <ItemsControl x:Name="Profiles">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="5" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:ProfileVm}">
+                            <Button Tag="{Binding Id}" Click="Profile_Click" Cursor="Hand" Margin="0,0,12,0">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid>
+                                            <c:CutBorder Cut="BottomLeft" CutSize="22" Background="{Binding Background}" Height="160" Padding="16">
+                                                <StackPanel VerticalAlignment="Bottom">
+                                                    <TextBlock Text="{Binding Name}" FontFamily="{StaticResource TitleFont}" FontStyle="Italic" FontSize="24" Foreground="White" TextWrapping="Wrap" />
+                                                    <TextBlock Text="{Binding Detail}" FontSize="12" Foreground="White" TextWrapping="Wrap" Margin="0,6,0,0" />
+                                                </StackPanel>
+                                            </c:CutBorder>
+                                            <Border x:Name="Sel" BorderBrush="White" BorderThickness="3" Visibility="Collapsed" />
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelected}" Value="True"><Setter TargetName="Sel" Property="Visibility" Value="Visible" /></DataTrigger>
+                                            <Trigger Property="IsMouseOver" Value="True"><Setter Property="Opacity" Value="0.9" /></Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <UniformGrid Columns="2" Margin="0,14,12,0">
+                    <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,0,6,0">
+                        <DockPanel>
+                            <CheckBox x:Name="AutoSwitch" Style="{StaticResource Switch}" Click="AutoSwitch_Click" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
+                            <StackPanel>
+                                <TextBlock Text="⚡ AUTOMÁTICO" FontFamily="{StaticResource LabelFont}" FontSize="17" Foreground="{StaticResource Gold}" />
+                                <TextBlock Style="{StaticResource Small}" Foreground="{StaticResource White}"
+                                           Text="Abriu o jogo, o boost liga sozinho e troca pro perfil certo. Fechou, tudo é restaurado depois de 10 s. Boost ligado na mão só desliga na mão." />
+                            </StackPanel>
+                        </DockPanel>
+                    </c:CutBorder>
+                    <StackPanel Margin="6,0,0,0">
+                        <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,0,0,8" Padding="16,8">
+                            <StackPanel>
+                                <TextBlock Text="⌨ ATALHO" FontFamily="{StaticResource LabelFont}" FontSize="17" Foreground="{StaticResource Cyan}" />
+                                <TextBlock x:Name="HotkeyText" Style="{StaticResource Small}" Foreground="{StaticResource White}" />
+                            </StackPanel>
+                        </c:CutBorder>
+                        <c:CutBorder Style="{StaticResource PanelBox}" Padding="16,8">
+                            <DockPanel>
+                                <CheckBox x:Name="StartupSwitch" Style="{StaticResource Switch}" Click="StartupSwitch_Click" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
+                                <StackPanel>
+                                    <TextBlock Text="⏻ ABRIR JUNTO COM O WINDOWS" FontFamily="{StaticResource LabelFont}" FontSize="17" Foreground="{StaticResource Pink}" />
+                                    <TextBlock x:Name="StartupText" Style="{StaticResource Small}" Foreground="{StaticResource White}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </c:CutBorder>
+                    </StackPanel>
+                </UniformGrid>
+                <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,8,12,0" Padding="16,8">
+                    <DockPanel>
+                        <CheckBox x:Name="PrioritySwitch" Style="{StaticResource Switch}" Click="PrioritySwitch_Click" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <Button x:Name="AddPriorityGame" Style="{StaticResource GhostButton}" Content="+ JOGO" FontSize="15" Padding="16,4"
+                                Click="AddPriorityGame_Click" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0"
+                                ToolTip="Escolha o .exe de outro jogo. Escolher um que já está na lista tira ele." />
+                        <StackPanel>
+                            <TextBlock Text="▲ PRIORIDADE ALTA FIXA" FontFamily="{StaticResource LabelFont}" FontSize="17" Foreground="{StaticResource Mint}" />
+                            <TextBlock x:Name="PriorityText" Style="{StaticResource Small}" Foreground="{StaticResource White}" />
+                        </StackPanel>
+                    </DockPanel>
+                </c:CutBorder>
+            </StackPanel>
+
+            <!-- ===== DIAGNÓSTICO ===== -->
+            <DockPanel x:Name="ScreenDiag" Visibility="Collapsed">
+                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                    <TextBlock Style="{StaticResource H}" Text="DIAGNÓSTICO" />
+                    <TextBlock Style="{StaticResource Big}" FontSize="26" Text="AJUSTES QUE VALEM PRA SEMPRE" />
+                </StackPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="DiagItems">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:DiagVm}">
+                                <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,0,0,10" Padding="14,10">
+                                    <DockPanel>
+                                        <TextBlock Text="{Binding Mark}" Foreground="{Binding MarkBrush}" FontFamily="{StaticResource TitleFont}" FontSize="18" Width="26" DockPanel.Dock="Left" />
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" Foreground="{StaticResource White}" FontWeight="Bold" FontSize="14" />
+                                            <TextBlock Text="{Binding Detail}" Foreground="#C3B0E3" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </c:CutBorder>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Grid>
+
+        <!-- ================= STATUS (rodapé) ================= -->
+        <TextBlock x:Name="StatusText" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="30,0,0,6"
+                   FontSize="11.5" Foreground="#E6FFE9D6" />
+
+        <!-- ================= BANNER "LIMPEZA CONCLUÍDA" ================= -->
+        <Grid x:Name="Banner" VerticalAlignment="Center" Margin="-20,40,-20,0" Visibility="Collapsed" IsHitTestVisible="False">
+            <Grid.RenderTransform>
+                <TransformGroup>
+                    <SkewTransform AngleY="-4" />
+                    <TranslateTransform x:Name="BannerMove" X="-1200" />
+                </TransformGroup>
+            </Grid.RenderTransform>
+            <Border BorderBrush="{StaticResource Gold}" BorderThickness="0,3" Padding="0,16">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#F2140B2E" Offset="0" />
+                        <GradientStop Color="#F2A12A76" Offset="0.5" />
+                        <GradientStop Color="#F2140B2E" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock HorizontalAlignment="Center" FontFamily="{StaticResource TitleFont}" FontStyle="Italic" FontSize="52" Foreground="{StaticResource White}" Effect="{StaticResource PinkGlow}">
+                        <Run x:Name="BannerTitle" Text="LIMPEZA CONCLUÍDA" /> <Run x:Name="BannerValue" Text="+0,0 GB" Foreground="{StaticResource Gold}" />
+                    </TextBlock>
+                    <TextBlock x:Name="BannerSub" HorizontalAlignment="Center" FontFamily="{StaticResource LabelFont}" FontSize="17" Foreground="#FFD9EC" Text="M O D O   J O G O   A T I V O  ·  B O A   P A R T I D A" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <!-- Só pelo ícone perto do relógio (NotifyIcon) -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- O SunsetBoost.exe é o launcher nativo (src/SunsetBoost.Launcher): é ele que pede admin e abre este app -->
+    <AssemblyName>SunsetBoost.App</AssemblyName>
+    <RootNamespace>SunsetBoost.App</RootNamespace>
+    <!-- Aviso do Windows Forms sobre DPI no manifesto: a janela é WPF e o DPI é controlado pelo manifesto mesmo -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+    <!-- Ícone do .exe (Iniciar, pesquisa, barra de tarefas, atalhos) -->
+    <ApplicationIcon>Assets\sunset.ico</ApplicationIcon>
+    <!-- Abre sem pedir admin (asInvoker). Com admin, quem abre é o launcher, com um ambiente só com variáveis do sistema:
+         um app .NET aberto com admin direto pelo UAC ou pelo Agendador receberia as variáveis de HKCU\Environment, que
+         qualquer programa do usuário grava (DOTNET_ROOT, CORECLR_PROFILER_PATH...) e que carregam DLL no processo. -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Defesas extras, caso alguém abra este .exe com admin sem passar pelo launcher:
+         não aceita DLL por DOTNET_STARTUP_HOOKS e o .exe publicado só procura o .NET no local registrado no HKLM
+         ou em Program Files, nunca em DOTNET_ROOT. -->
+    <StartupHookSupport>false</StartupHookSupport>
+    <AppHostDotNetSearch>Global</AppHostDotNetSearch>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Evita conflito de nomes entre WPF e Windows Forms -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\sunset.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SunsetBoost.Core\SunsetBoost.Core.csproj" />
+  </ItemGroup>
+
+</Project>

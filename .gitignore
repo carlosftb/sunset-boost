@@ -1,0 +1,12 @@
+# Saídas de compilação
+bin/
+obj/
+publish/
+
+# IDE
+.vs/
+*.user
+*.suo
+
+# Backups de driver gerados pelos scripts de ferramentas/
+ferramentas/backup-drivers/

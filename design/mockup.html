@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Sunset Boost · mockup Fase 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#140b2e; --plum:#3b1458; --magenta:#d6337f; --pink:#ff5fa2; --orange:#ff8a3d; --gold:#ffd166;
+    --cyan:#3ee6ff; --mint:#5cffb0; --ink:#1a0f2e; --white:#fff6ee;
+    --cut: polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0b0618;font-family:Inter,Segoe UI,sans-serif;color:var(--white);display:flex;flex-direction:column;align-items:center;padding:24px;gap:14px;min-height:100vh}
+  .note{font-size:13px;color:#b9a8d6;max-width:1040px;text-align:center}
+  .win{width:1040px;height:640px;position:relative;overflow:hidden;border-radius:10px;
+    background:linear-gradient(180deg,#140b2e 0%,#3b1458 38%,#a12a76 66%,#ff6f5e 86%,#ffb35c 100%);
+    box-shadow:0 30px 80px rgba(214,51,127,.35),0 0 0 1px rgba(255,255,255,.08)}
+  /* cenário */
+  .sun{position:absolute;left:50%;bottom:118px;width:360px;height:360px;transform:translateX(-50%);border-radius:50%;
+    background:linear-gradient(180deg,#ffe38a 0%,#ff9a4d 45%,#ff4f8b 100%);opacity:.55;
+    -webkit-mask:repeating-linear-gradient(180deg,#000 0 22px,transparent 22px 28px);mask:repeating-linear-gradient(180deg,#000 0 22px,transparent 22px 28px)}
+  .sea{position:absolute;left:0;right:0;bottom:0;height:130px;background:linear-gradient(180deg,#5a1f6e,#2a0f45)}
+  .sea svg{position:absolute;inset:0}
+  .palm{position:absolute;bottom:96px;fill:#12071f;opacity:.92}
+  .titlebar{position:absolute;top:0;left:0;right:0;height:30px;display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:0 14px;font-size:12px;color:#d7c4ef;z-index:5}
+  /* topo */
+  header{position:absolute;top:26px;left:28px;right:28px;display:flex;align-items:center;gap:26px;z-index:4}
+  .logo{font-family:Anton,Impact,sans-serif;font-style:italic;font-size:34px;letter-spacing:1px;line-height:.9;transform:skewX(-6deg);padding-right:10px;
+    background:linear-gradient(90deg,var(--gold),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 10px rgba(255,95,162,.55))}
+  .logo small{display:block;font-family:'Bebas Neue';font-size:13px;letter-spacing:4px;color:#ffd9ec;-webkit-text-fill-color:#ffd9ec;font-style:normal}
+  nav{display:flex;gap:4px}
+  nav button{font-family:'Bebas Neue',Impact,sans-serif;font-size:22px;letter-spacing:1.5px;padding:6px 18px 3px;border:0;cursor:pointer;
+    background:rgba(20,11,46,.55);color:#e9dcff;transform:skewX(-12deg);transition:.15s}
+  nav button span{display:inline-block;transform:skewX(12deg)}
+  nav button:hover{background:rgba(255,95,162,.35)}
+  nav button.on{background:var(--white);color:var(--ink);box-shadow:0 0 18px rgba(255,214,102,.6)}
+  .pill{margin-left:auto;font-family:'Bebas Neue';font-size:16px;letter-spacing:2px;padding:5px 12px;background:rgba(20,11,46,.6);border:1px solid rgba(62,230,255,.5);color:var(--cyan);clip-path:var(--cut)}
+  /* telas */
+  .screen{position:absolute;top:96px;left:28px;right:28px;bottom:26px;display:none;z-index:3}
+  .screen.on{display:block;animation:in .25s ease-out}
+  @keyframes in{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+  .panel{background:rgba(18,8,38,.72);border:1px solid rgba(255,255,255,.08);clip-path:var(--cut);padding:16px 18px;backdrop-filter:blur(4px)}
+  .h{font-family:'Bebas Neue';font-size:15px;letter-spacing:3px;color:#ffb3d4}
+  .big{font-family:Anton,Impact;font-style:italic;font-size:30px;line-height:1}
+  /* início */
+  .home{display:grid;grid-template-columns:330px 1fr;gap:22px;height:100%}
+  .radar{position:relative;width:330px;height:330px}
+  .radar .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .legend{display:flex;justify-content:center;gap:16px;margin-top:6px;font-family:'Bebas Neue';letter-spacing:1.5px;font-size:16px}
+  .legend i{display:inline-block;width:10px;height:10px;margin-right:6px;transform:skewX(-12deg)}
+  .right{display:flex;flex-direction:column;gap:14px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .stat .v{font-family:Anton;font-style:italic;font-size:34px}
+  .stat .s{font-size:12px;color:#cdb9ea}
+  .cta{position:relative;border:0;cursor:pointer;padding:22px 26px;font-family:Anton,Impact;font-style:italic;font-size:40px;letter-spacing:1px;color:var(--ink);
+    background:linear-gradient(90deg,var(--gold),var(--orange) 45%,var(--pink));clip-path:polygon(22px 0,100% 0,calc(100% - 22px) 100%,0 100%);
+    box-shadow:0 0 0 2px #fff inset;filter:drop-shadow(0 0 18px rgba(255,95,162,.8));transition:.15s;text-align:left}
+  .cta:hover{transform:translateY(-2px) scale(1.01);filter:drop-shadow(0 0 28px rgba(255,138,61,1))}
+  .cta small{display:block;font-family:Inter;font-style:normal;font-size:13px;font-weight:600;letter-spacing:0;color:#3b1458}
+  .cta.active{background:linear-gradient(90deg,var(--cyan),#7b6cff);}
+  .tops{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .mini{font-size:13px}.mini b{display:block;font-family:Anton;font-style:italic;font-size:20px;font-weight:400}
+  /* limpeza */
+  .cleanhead{display:flex;align-items:flex-end;gap:18px;margin-bottom:12px}
+  .cleanhead .big{font-size:26px}
+  .chips{display:flex;gap:8px;margin-left:auto}
+  .chip{font-family:'Bebas Neue';letter-spacing:1.5px;font-size:15px;padding:4px 10px;clip-path:var(--cut)}
+  .c-never{background:#2c2350;color:#a99bd6}.c-close{background:#ff5fa2;color:#2a0718}.c-ask{background:#ffd166;color:#3d2600}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .card{position:relative;padding:12px 14px;background:rgba(18,8,38,.78);clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%);border-left:4px solid var(--pink);min-height:96px}
+  .card.never{border-color:#6b5fa0;opacity:.8}.card.ask{border-color:var(--gold)}
+  .card .n{font-weight:800;font-size:14px}.card .m{font-family:Anton;font-style:italic;font-size:24px;margin-top:4px}
+  .card .p{font-size:11px;color:#c3b0e3}
+  .card .tag{position:absolute;right:10px;bottom:10px}
+  .tg{width:38px;height:20px;border-radius:2px;background:#3a2a5e;position:relative;cursor:pointer;transform:skewX(-12deg)}
+  .tg::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;transition:.15s}
+  .tg.on{background:var(--pink);box-shadow:0 0 10px var(--pink)}.tg.on::after{left:21px}
+  .lock{font-size:12px;color:#a99bd6;font-family:'Bebas Neue';letter-spacing:1.5px}
+  .foot{display:flex;align-items:center;gap:16px;margin-top:12px}
+  .btn{font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;padding:8px 22px;border:0;cursor:pointer;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);
+    background:linear-gradient(90deg,var(--orange),var(--pink));color:var(--ink);filter:drop-shadow(0 0 10px rgba(255,95,162,.7))}
+  .btn.ghost{background:rgba(255,255,255,.12);color:var(--white);filter:none}
+  /* modo jogo */
+  .tweaks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tw{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(18,8,38,.75);clip-path:var(--cut)}
+  .tw .t{flex:1}.tw .t b{display:block;font-size:14px}.tw .t span{font-size:12px;color:#c3b0e3}
+  .imp{font-family:'Bebas Neue';letter-spacing:1.5px;font-size:14px;padding:3px 8px;transform:skewX(-12deg)}
+  .i-hi{background:var(--pink);color:#2a0718}.i-md{background:var(--orange);color:#3a1500}.i-lo{background:#6c5fb0;color:#fff}.i-cf{background:var(--cyan);color:#05313a}
+  .restore{margin-top:12px;display:flex;align-items:center;gap:14px;font-size:13px;color:#d7c4ef}
+  /* perfis + diagnóstico */
+  .profiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .prof{height:200px;position:relative;padding:16px;clip-path:polygon(0 0,100% 0,100% 100%,22px 100%,0 calc(100% - 22px));cursor:pointer}
+  .prof .big{font-size:28px;position:absolute;left:16px;bottom:44px}
+  .prof .s{position:absolute;left:16px;bottom:16px;font-size:12px}
+  .prof.sel{outline:3px solid #fff;outline-offset:-3px}
+  .diag{display:flex;flex-direction:column;gap:10px}
+  .dg{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:rgba(18,8,38,.75);clip-path:var(--cut)}
+  .dg .ck{font-family:Anton;font-size:18px;color:var(--mint);width:20px}
+  .dg b{font-size:14px}.dg p{font-size:12px;color:#c3b0e3;margin-top:2px}
+  /* banner */
+  .banner{position:absolute;left:-20px;right:-20px;top:42%;z-index:20;padding:18px 0;text-align:center;transform:skewY(-4deg) translateX(-110%);
+    background:linear-gradient(90deg,rgba(20,11,46,.95),rgba(161,42,118,.95),rgba(20,11,46,.95));border-top:3px solid var(--gold);border-bottom:3px solid var(--gold);pointer-events:none}
+  .banner .t1{font-family:Anton;font-style:italic;font-size:54px;letter-spacing:2px;color:var(--white);text-shadow:0 0 18px var(--pink)}
+  .banner .t1 em{color:var(--gold);font-style:italic}
+  .banner .t2{font-family:'Bebas Neue';font-size:18px;letter-spacing:5px;color:#ffd9ec}
+  .banner.show{animation:sweep 2.8s cubic-bezier(.2,.9,.2,1) forwards}
+  @keyframes sweep{0%{transform:skewY(-4deg) translateX(-110%)}14%{transform:skewY(-4deg) translateX(0)}82%{transform:skewY(-4deg) translateX(0);opacity:1}100%{transform:skewY(-4deg) translateX(110%);opacity:0}}
+</style>
+</head>
+<body>
+<p class="note">Mockup da Fase 1 · clique nas abas, nos interruptores e no botão grande. Os números são do seu PC (Edge 5,3 GB, Valorant aberto).</p>
+
+<div class="win">
+  <div class="sun"></div>
+  <!-- palmeiras desenhadas do zero -->
+  <svg class="palm" style="left:-10px;width:230px;height:330px" viewBox="0 0 230 330"><path d="M118 330c-6-80-2-160 14-235l7 2c-14 74-17 152-11 233z"/><path d="M134 96c-30-24-74-30-118-14 40-2 76 6 104 26zM134 96c-10-38-38-66-80-80 32 20 54 48 66 84zM136 94c20-32 52-50 92-52-36 12-62 32-82 60zM136 96c34-6 66 6 90 32-30-14-60-20-90-20zM134 98c-22 14-36 38-42 70 12-26 28-46 50-60z"/></svg>
+  <svg class="palm" style="right:-20px;width:270px;height:380px" viewBox="0 0 270 380"><path d="M120 380c8-96 22-186 50-270l8 3c-26 82-40 170-48 267z"/><path d="M172 108c-34-28-86-36-140-18 48-2 92 8 126 32zM172 108c-6-44-30-80-74-102 32 26 52 62 60 106zM174 106c26-34 64-54 110-54-42 14-72 36-96 68zM174 110c38-4 74 12 96 44-32-18-66-26-98-28zM172 112c-24 18-40 46-44 84 12-32 30-56 56-72z"/></svg>
+  <div class="sea"><svg viewBox="0 0 1040 130" preserveAspectRatio="none"><g fill="none" stroke="#ff8fc0" stroke-opacity=".35" stroke-width="2"><path d="M0 20 Q 130 8 260 20 T 520 20 T 780 20 T 1040 20"/><path d="M0 52 Q 130 40 260 52 T 520 52 T 780 52 T 1040 52" stroke-opacity=".22"/><path d="M0 88 Q 130 76 260 88 T 520 88 T 780 88 T 1040 88" stroke-opacity=".14"/></g></svg></div>
+
+  <div class="titlebar"><span>—</span><span>☐</span><span>✕</span></div>
+  <header>
+    <div class="logo">SUNSET BOOST<small>VICE MODE · v0.1</small></div>
+    <nav id="tabs">
+      <button class="on" data-t="home"><span>Início</span></button>
+      <button data-t="clean"><span>Limpeza</span></button>
+      <button data-t="game"><span>Modo Jogo</span></button>
+      <button data-t="prof"><span>Perfis</span></button>
+      <button data-t="diag"><span>Diagnóstico</span></button>
+    </nav>
+    <div class="pill">PERFIL · VALORANT</div>
+  </header>
+
+  <!-- INÍCIO -->
+  <section class="screen on" id="home">
+    <div class="home">
+      <div>
+        <div class="radar">
+          <svg viewBox="0 0 330 330" width="330" height="330">
+            <defs>
+              <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <circle cx="165" cy="165" r="158" fill="rgba(18,8,38,.75)" stroke="rgba(255,255,255,.15)"/>
+            <g stroke="rgba(255,255,255,.08)" fill="none"><circle cx="165" cy="165" r="120"/><circle cx="165" cy="165" r="80"/><line x1="7" y1="165" x2="323" y2="165"/><line x1="165" y1="7" x2="165" y2="323"/></g>
+            <g fill="none" stroke-width="12" stroke-linecap="butt" transform="rotate(-90 165 165)" filter="url(#glow)">
+              <circle cx="165" cy="165" r="140" stroke="rgba(255,95,162,.15)"/>
+              <circle id="arcRam" cx="165" cy="165" r="140" stroke="#ff5fa2" stroke-dasharray="757 880"/>
+              <circle cx="165" cy="165" r="118" stroke="rgba(255,138,61,.15)"/>
+              <circle id="arcCpu" cx="165" cy="165" r="118" stroke="#ff8a3d" stroke-dasharray="252 741"/>
+              <circle cx="165" cy="165" r="96" stroke="rgba(62,230,255,.15)"/>
+              <circle id="arcGpu" cx="165" cy="165" r="96" stroke="#3ee6ff" stroke-dasharray="434 603"/>
+            </g>
+          </svg>
+          <div class="center">
+            <div class="h">RAM LIVRE</div>
+            <div class="big" id="freeRam" style="font-size:46px">2,2 GB</div>
+            <div style="font-size:12px;color:#cdb9ea">de 16 GB</div>
+          </div>
+        </div>
+        <div class="legend"><span><i style="background:#ff5fa2"></i>RAM <b id="lRam">86%</b></span><span><i style="background:#ff8a3d"></i>CPU <b id="lCpu">34%</b></span><span><i style="background:#3ee6ff"></i>GPU <b id="lGpu">72%</b></span></div>
+      </div>
+      <div class="right">
+        <div class="stats">
+          <div class="panel stat"><div class="h">PROCESSOS</div><div class="v" id="sProc">279</div><div class="s">rodando agora</div></div>
+          <div class="panel stat"><div class="h">PODE LIBERAR</div><div class="v" style="color:var(--gold)" id="sFree">+5,8 GB</div><div class="s">Edge, Steam, Epic, OneDrive</div></div>
+          <div class="panel stat"><div class="h">COMPRESSÃO</div><div class="v" id="sComp">1,0 GB</div><div class="s">Windows sem espaço</div></div>
+        </div>
+        <button class="cta" id="cta">ENTRAR NO MODO JOGO<small>Fecha 6 apps, limpa a standby list e ativa 7 ajustes · Ctrl+Shift+B</small></button>
+        <div class="panel">
+          <div class="h" style="margin-bottom:8px">QUEM ESTÁ COMENDO SUA RAM</div>
+          <div class="tops">
+            <div class="mini">Microsoft Edge<b style="color:var(--pink)">5,3 GB</b>44 processos</div>
+            <div class="mini">Claude<b>2,4 GB</b>você decide</div>
+            <div class="mini">Valorant<b style="color:var(--cyan)">2,0 GB</b>protegido</div>
+            <div class="mini">Steam + Epic<b style="color:var(--pink)">0,8 GB</b>sem uso</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIMPEZA -->
+  <section class="screen" id="clean">
+    <div class="cleanhead">
+      <div><div class="h">LIMPEZA</div><div class="big">VAI LIBERAR <span style="color:var(--gold)" id="cleanTotal">6,4 GB</span></div></div>
+      <div class="chips"><span class="chip c-close">✓ FECHA POR PADRÃO</span><span class="chip c-ask">✋ VOCÊ DECIDE</span><span class="chip c-never">🔒 NUNCA FECHA</span></div>
+    </div>
+    <div class="grid" id="cards"></div>
+    <div class="foot"><button class="btn" id="cleanBtn">LIMPAR AGORA</button><span style="font-size:13px;color:#d7c4ef">Pede pra fechar → espera 3 s → só então força. Nada da lista 🔒 é tocado.</span></div>
+  </section>
+
+  <!-- MODO JOGO -->
+  <section class="screen" id="game">
+    <div class="cleanhead"><div><div class="h">MODO JOGO</div><div class="big">AJUSTES · TUDO REVERSÍVEL</div></div>
+      <div class="chips"><span class="imp i-hi">ALTO</span><span class="imp i-md">MÉDIO</span><span class="imp i-lo">BAIXO</span><span class="imp i-cf">CONFORTO</span></div></div>
+    <div class="tweaks" id="tweaks"></div>
+    <div class="restore"><button class="btn ghost">↺ RESTAURAR TUDO</button>Cópia das configurações salva antes de aplicar · último snapshot: hoje, 14:02</div>
+  </section>
+
+  <!-- PERFIS -->
+  <section class="screen" id="prof">
+    <div class="cleanhead"><div><div class="h">PERFIS</div><div class="big">ESCOLHA O JOGO</div></div></div>
+    <div class="profiles">
+      <div class="prof sel" style="background:linear-gradient(160deg,#ff4d6d,#7a1238)"><div class="big">VALORANT</div><div class="s">Mantém Riot Client + Vanguard<br>Fecha Steam e Epic</div></div>
+      <div class="prof" style="background:linear-gradient(160deg,#3ee6ff,#1b3a7a)"><div class="big">STEAM</div><div class="s">Mantém Steam<br>Fecha Riot e Epic</div></div>
+      <div class="prof" style="background:linear-gradient(160deg,#c0a0ff,#3b1458)"><div class="big">EPIC</div><div class="s">Mantém Epic + EAC<br>Fecha Steam e Riot</div></div>
+      <div class="prof" style="background:linear-gradient(160deg,#ffd166,#c2367a)"><div class="big">+ NOVO</div><div class="s">Aponte o .exe do jogo</div></div>
+    </div>
+    <div class="panel" style="margin-top:14px;font-size:13px">⚡ <b>Automático:</b> abriu o jogo, o boost liga · fechou, tudo é restaurado.</div>
+  </section>
+
+  <!-- DIAGNÓSTICO -->
+  <section class="screen" id="diag">
+    <div class="cleanhead"><div><div class="h">DIAGNÓSTICO</div><div class="big">AJUSTES QUE VALEM PRA SEMPRE</div></div></div>
+    <div class="diag">
+      <div class="dg"><div class="ck">!</div><div><b>Desligar o "Startup boost" do Edge</b><p>É ele que mantém o Edge na memória mesmo fechado. edge://settings/system</p></div></div>
+      <div class="dg"><div class="ck">!</div><div><b>Painel NVIDIA: Modo de baixa latência = Ligado</b><p>Gerenciamento de energia = Preferir desempenho máximo, só no perfil do Valorant.</p></div></div>
+      <div class="dg"><div class="ck">✓</div><div><b>Plano de energia: Alto desempenho</b><p>Já está certo no seu PC.</p></div></div>
+      <div class="dg"><div class="ck">!</div><div><b>Steam e Epic abrindo junto com o Windows</b><p>Tirar da inicialização economiza ~0,8 GB desde o boot.</p></div></div>
+    </div>
+  </section>
+
+  <div class="banner" id="banner"><div class="t1">LIMPEZA CONCLUÍDA <em>+5,8 GB</em></div><div class="t2">MODO JOGO ATIVO · BOA PARTIDA</div></div>
+</div>
+
+<script>
+  const tabs=document.querySelectorAll('#tabs button');
+  tabs.forEach(b=>b.onclick=()=>{tabs.forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));});
+
+  const apps=[
+    ['Microsoft Edge','44 processos',5.3,'close',true],['Steam','5 processos',0.45,'close',true],['Epic Games','3 processos',0.35,'close',true],
+    ['OneDrive','1 processo',0.12,'close',true],['Widgets','2 processos',0.15,'close',true],['Discord','6 processos',0.42,'ask',false],
+    ['Spotify','5 processos',0.31,'ask',false],['Claude','8 processos',2.4,'ask',false],
+    ['Valorant','o jogo',2.0,'never'],['Riot Client','necessário pro jogo',0.6,'never'],['Vanguard','anti-cheat',0.03,'never'],['Windows Defender','segurança',0.25,'never']];
+  const fmt=v=>v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' GB';
+  const cards=document.getElementById('cards');
+  function total(){const t=apps.filter(a=>a[3]!=='never'&&a[4]).reduce((s,a)=>s+a[2],0);document.getElementById('cleanTotal').textContent=fmt(t);}
+  apps.forEach((a,i)=>{const d=document.createElement('div');d.className='card '+a[3];
+    d.innerHTML=`<div class="n">${a[0]}</div><div class="m">${fmt(a[2])}</div><div class="p">${a[1]}</div><div class="tag">${a[3]==='never'?'<span class="lock">🔒 PROTEGIDO</span>':`<div class="tg ${a[4]?'on':''}"></div>`}</div>`;
+    const tg=d.querySelector('.tg'); if(tg) tg.onclick=()=>{a[4]=!a[4];tg.classList.toggle('on',a[4]);total();};
+    cards.appendChild(d);});
+  total();
+
+  const tw=[['Fechar apps pesados','~6 GB no seu caso','hi',1],['Limpar standby list','Como o ISLC · menos stutter','md',1],['Desligar gravação do Xbox (Game DVR)','Volta ao sair do modo jogo','md',1],
+    ['Prioridade alta pro jogo','Ajuda nos 1% lows · nunca Realtime','lo',1],['Pausar Search, SysMain e Spooler','Só durante o jogo','lo',1],['Modo de Jogo do Windows','Configuração nativa','lo',1],
+    ['Plano "Desempenho Máximo"','Você já usa Alto desempenho','lo',0],['Não Perturbe','Sem notificação no meio do round','cf',1]];
+  const lbl={hi:'ALTO',md:'MÉDIO',lo:'BAIXO',cf:'CONFORTO'};
+  const twEl=document.getElementById('tweaks');
+  tw.forEach(t=>{const d=document.createElement('div');d.className='tw';
+    d.innerHTML=`<div class="tg ${t[3]?'on':''}"></div><div class="t"><b>${t[0]}</b><span>${t[1]}</span></div><span class="imp i-${t[2]}">${lbl[t[2]]}</span>`;
+    const g=d.querySelector('.tg');g.onclick=()=>g.classList.toggle('on');twEl.appendChild(d);});
+
+  function boost(){const b=document.getElementById('banner');b.classList.remove('show');void b.offsetWidth;b.classList.add('show');
+    const cta=document.getElementById('cta');cta.classList.add('active');cta.firstChild.textContent='MODO JOGO ATIVO ';
+    document.getElementById('freeRam').textContent='8,0 GB';document.getElementById('arcRam').setAttribute('stroke-dasharray','440 880');
+    document.getElementById('lRam').textContent='50%';document.getElementById('sProc').textContent='196';document.getElementById('sComp').textContent='0,2 GB';
+    document.getElementById('sFree').textContent='+5,8 GB ✓';}
+  document.getElementById('cta').onclick=boost;document.getElementById('cleanBtn').onclick=boost;
+</script>
+</body>
+</html>

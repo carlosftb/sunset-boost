@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Motor do app: processos, memória, ajustes do Windows. Sem nenhuma dependência de interface. -->
+  <PropertyGroup>
+    <RootNamespace>SunsetBoost.Core</RootNamespace>
+    <!-- Só pela UI Automation (fechar abas do Edge); nenhuma tela do WPF é usada aqui -->
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SunsetBoost.Core.Tests" />
+    <!-- O WPF remove System.IO dos usings automáticos; aqui não há conflito de nomes -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
+  </ItemGroup>
+
+</Project>

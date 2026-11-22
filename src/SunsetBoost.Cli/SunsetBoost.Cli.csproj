@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Ferramenta de linha de comando: útil pra testar o motor sem a interface (ex.: rodar a simulação). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>sunsetboost-cli</AssemblyName>
+    <RootNamespace>SunsetBoost.Cli</RootNamespace>
+    <!-- Roda como admin: não aceita DLLs injetadas por DOTNET_STARTUP_HOOKS, e o .exe publicado só procura o .NET
+         no local registrado no HKLM ou em Program Files, nunca em DOTNET_ROOT -->
+    <StartupHookSupport>false</StartupHookSupport>
+    <AppHostDotNetSearch>Global</AppHostDotNetSearch>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SunsetBoost.Core\SunsetBoost.Core.csproj" />
+  </ItemGroup>
+
+</Project>
