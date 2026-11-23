@@ -1,89 +1,122 @@
+<div align="center">
+
 # 🌴 Sunset Boost
 
-App de Windows que coloca o PC em "modo jogo" com um clique e desfaz tudo depois. C# + WPF (.NET 10).
+**Modo jogo com um clique. Quando a partida acaba, tudo volta como estava.**
 
-## Instalar
+[![Baixar](https://img.shields.io/github/v/release/carlosftb/sunset-boost?include_prereleases&label=baixar&style=for-the-badge&color=ff5fa2&labelColor=140b2e)](https://github.com/carlosftb/sunset-boost/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/carlosftb/sunset-boost/total?label=downloads&style=for-the-badge&color=ff8a3d&labelColor=140b2e)](https://github.com/carlosftb/sunset-boost/releases)
+[![Windows 10 e 11](https://img.shields.io/badge/Windows-10%20%7C%2011-3ee6ff?style=for-the-badge&labelColor=140b2e)](#-instalar)
 
-Num PowerShell **como administrador**, na pasta do projeto:
+![Tela inicial do Sunset Boost](docs/img/home.png)
+
+### [⬇️ Baixar o Sunset Boost](https://github.com/carlosftb/sunset-boost/releases/latest)
+
+</div>
+
+O Sunset Boost é um app pra Windows que prepara o PC pra jogar. Ele fecha o que está pesando, libera memória e aplica ajustes reversíveis no Windows. Quando você sai do jogo, ele restaura tudo.
+
+Jogos, anti-cheats e processos do Windows nunca são tocados.
+
+> **Versão beta.** O app funciona e tem mais de 300 testes automáticos, mas ainda falta o teste longo em partidas reais. Se algo der errado, [abra uma issue](https://github.com/carlosftb/sunset-boost/issues/new/choose).
+
+## ✨ O que ele faz
+
+- **Mostra quem está comendo sua RAM**: memória, CPU e GPU em tempo real, e quanto dá pra liberar.
+- **Limpa antes da partida**: fecha navegadores, launchers e apps que você não está usando. Você escolhe o que fecha.
+- **Modo Jogo**: limpa a memória em cache, pausa serviços pesados (indexação, SysMain, impressão), liga o plano de alto desempenho, desliga a gravação do Xbox e as notificações.
+- **Desfaz tudo**: antes de mudar qualquer coisa, salva uma cópia das suas configurações. **Restaurar tudo** volta exatamente como estava.
+- **Perfis por jogo**: Valorant, League of Legends, Steam, Epic. Cada perfil sabe quais launchers manter abertos.
+- **Automático**: abriu o jogo, o boost liga sozinho; fechou, tudo é restaurado.
+- **Atalho global**: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> liga e desliga de qualquer lugar, até com o jogo aberto.
+- **Diagnóstico**: dicas de ajustes que valem pra sempre, feitas pro seu PC.
+
+<table>
+  <tr>
+    <td><img src="docs/img/clean.png" alt="Aba Limpeza: apps que vão fechar, que você decide e que nunca fecham"></td>
+    <td><img src="docs/img/game.png" alt="Aba Modo Jogo: ajustes reversíveis com o impacto de cada um"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Limpeza</b>: você vê o que fecha antes de fechar</td>
+    <td align="center"><b>Modo Jogo</b>: cada ajuste com o impacto dele</td>
+  </tr>
+  <tr>
+    <td><img src="docs/img/prof.png" alt="Aba Perfis: escolha do jogo, modo automático e atalho"></td>
+    <td><img src="docs/img/diag.png" alt="Aba Diagnóstico: ajustes recomendados pro PC"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Perfis</b>: um por jogo, com modo automático</td>
+    <td align="center"><b>Diagnóstico</b>: o que vale mudar de vez</td>
+  </tr>
+</table>
+
+## 📥 Instalar
+
+1. Baixe o `SunsetBoost-Setup-<versão>.exe` na [página da última versão](https://github.com/carlosftb/sunset-boost/releases/latest).
+2. Abra o instalador e siga os passos. Ele instala em `C:\Program Files\SunsetBoost` e cria os atalhos.
+3. Abra o **Sunset Boost** pelo atalho. O Windows pede permissão de administrador: é ela que deixa o app pausar serviços e limpar a memória.
+
+**Precisa de:** Windows 10 (versão 2004 ou mais nova) ou Windows 11, 64 bits. Não precisa instalar o .NET: ele já vem junto.
+
+### "O Windows protegeu o computador"
+
+O instalador ainda não tem assinatura digital (um certificado custa caro pra um projeto gratuito), então o SmartScreen avisa na primeira vez. Clique em **Mais informações** › **Executar assim mesmo**.
+
+Pra ter certeza de que o arquivo é o mesmo que foi publicado, compare o SHA-256 dele com o da página da versão:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\instalar.ps1
+Get-FileHash .\SunsetBoost-Setup-0.1.0.exe -Algorithm SHA256
 ```
 
-Instala em `C:\Program Files\SunsetBoost` o `SunsetBoost.exe` (launcher nativo, o único que pede admin) e o `SunsetBoost.App.exe` (interface), e cria atalhos na área de trabalho e no menu Iniciar.
-Precisa do .NET 10 SDK e Desktop Runtime e do C++ das [Ferramentas de Build do Visual Studio](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (o NativeAOT usa o linker dele pra gerar o launcher).
-A compilação com admin roda no `compilar-isolado.ps1`: numa cópia dos fontes, dentro de uma pasta só de admin, sem os pacotes, imports de MSBuild e variáveis de ambiente do seu usuário (baixa os pacotes NuGet a cada instalação).
-"Abrir junto com o Windows" fica no app (aba Perfis) e usa uma tarefa agendada com admin, que só aceita o launcher instalado em Program Files.
-Pra remover: `.\desinstalar.ps1` (ou `-ApagarDados` pra apagar configurações e logs).
+O instalador é gerado pelo [GitHub Actions](.github/workflows/release.yml) a partir deste código, nunca num PC pessoal.
 
-## Estrutura
+## 🎮 Como usar
 
-| Pasta | O que é |
-|---|---|
-| `src/SunsetBoost.Core` | Motor: leitura de processos, regras de segurança, limpeza, memória. Sem interface. |
-| `src/SunsetBoost.Launcher` | `SunsetBoost.exe`: launcher nativo (NativeAOT) que pede admin e abre a interface com ambiente limpo. |
-| `src/SunsetBoost.App` | Interface WPF (`SunsetBoost.App.exe`). Abre sem admin; instalada, passa pelo launcher pra ganhar admin. Fora da instalação, roda no modo limitado. |
-| `src/SunsetBoost.Cli` | Linha de comando pra testar o motor sem a interface. |
-| `tests/SunsetBoost.Core.Tests` | Testes automáticos (xUnit). |
-| `design/mockup.html` | Mockup visual da Fase 1 (abrir no navegador). |
+1. Na aba **Perfis**, escolha o jogo.
+2. Na aba **Limpeza**, confira o que vai fechar. Os apps em amarelo (**Você decide**) só fecham se você ligar.
+3. Clique em **Entrar no modo jogo** (ou aperte <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>).
+4. Depois da partida, clique de novo ou em **Restaurar tudo**.
 
-Configurações e logs: com admin, em `%ProgramData%\SunsetBoost\` (só administradores alteram; a versão anterior usava a pasta abaixo e as configurações são copiadas uma vez). Sem admin (desenvolvimento, CLI), em `%LOCALAPPDATA%\SunsetBoost\`.
+Fechar a janela deixa o app no ícone perto do relógio. Pra sair de vez: botão direito no ícone › **Sair**.
 
-## Comandos
+## 🔒 É seguro?
 
-```powershell
-dotnet build SunsetBoost.sln
-dotnet test SunsetBoost.sln
+- **Nunca fecha** processos do Windows, serviços, antivírus, anti-cheats (Vanguard, Easy Anti-Cheat, BattlEye, FACEIT…), drivers de vídeo e áudio, nem jogos. Essa lista é fixa no código e nenhuma configuração passa por cima dela.
+- **Não mexe no jogo**: o app nem abre acesso aos processos de jogos e anti-cheats, nem pra medir memória. Não injeta nada, não lê memória de jogo e não muda arquivos do jogo.
+- **Tudo é reversível**: cada ajuste do Modo Jogo é salvo antes e restaurado depois. Se o PC desligar no meio, o app oferece restaurar quando abrir de novo.
+- **Pede pra fechar antes de forçar**: apps com janela ganham alguns segundos pra salvar e fechar sozinhos.
+- **Código aberto pra leitura**: dá pra conferir tudo o que ele faz neste repositório.
 
-# Mostra o que seria fechado, sem tocar em nada
-dotnet run --project src/SunsetBoost.Cli -- simular --perfil valorant
+Detalhes técnicos em [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md#segurança). Achou uma falha de segurança? Veja o [SECURITY.md](SECURITY.md).
 
-# Mesma coisa, decidindo apps da lista "Você decide"
-dotnet run --project src/SunsetBoost.Cli -- simular --fechar discord,spotify --manter steam
+## 🗑️ Desinstalar
 
-# Limpeza de verdade (terminal como administrador; pede pra digitar SIM)
-dotnet run --project src/SunsetBoost.Cli -- limpar --perfil valorant
+Antes, abra o app e clique em **Restaurar tudo** se o Modo Jogo estiver ativo (o desinstalador avisa se esquecer).
 
-dotnet run --project src/SunsetBoost.Cli -- memoria
+Depois: **Configurações do Windows** › **Aplicativos** › **Sunset Boost** › **Desinstalar**. Isso também desliga o "Abrir junto com o Windows".
 
-# Modo Jogo (ajustes reversíveis). status não precisa de admin; o resto precisa
-dotnet run --project src/SunsetBoost.Cli -- modojogo status
-dotnet run --project src/SunsetBoost.Cli -- modojogo testar   # aplica tudo, confere, restaura e compara
-dotnet run --project src/SunsetBoost.Cli -- modojogo entrar
-dotnet run --project src/SunsetBoost.Cli -- modojogo sair
+As configurações e logs ficam em `C:\ProgramData\SunsetBoost`. Pode apagar essa pasta se não for instalar de novo.
 
-# Teste manual do Edge leve (fecha as abas do SEU Edge menos a 1ª; pede pra digitar SIM)
-dotnet run --project src/SunsetBoost.Cli -- edgeleve
+## 💜 Apoie o projeto
 
-# App com interface, em modo simulação (nada é alterado)
-dotnet run --project src/SunsetBoost.App -- --simular
+O Sunset Boost é gratuito. Se ele ajudou nas suas partidas e você quiser apoiar, dá pra doar qualquer valor por Pix:
+
+**Chave Pix (aleatória):**
+
+```text
+f0db43bb-0fa4-4dd4-bceb-0eb4b3ba3bdd
 ```
 
-Perfis: `valorant`, `lol`, `steam`, `epic`, `generico`.
+Contar pros amigos e abrir issues com bugs e ideias também ajuda muito.
 
-## Segurança (lista 🔒 Nunca fecha)
+## 🛠️ Para desenvolvedores
 
-Fixa no código (`SafetyRules.cs`); nenhuma configuração passa por cima:
-processos de sessão 0 (serviços), tudo dentro de `C:\Windows`, processos essenciais, antivírus/Defender,
-anti-cheats (Vanguard, EAC, BattlEye, FACEIT…), drivers de vídeo/áudio, qualquer jogo conhecido,
-o próprio app e quem o abriu, e processos cujo caminho não dá pra ler.
-Jogos conhecidos, anti-cheats e o Riot Client nem são lidos (`HandsOff.cs`): o app não abre acesso a esses processos, nem pra medir memória, e não muda a prioridade de jogos com anti-cheat.
-O executor confere tudo de novo, processo por processo, logo antes de agir, e não fecha nada se o PID tiver passado pra outro processo.
+Como compilar, testar, gerar o instalador e lançar uma versão: [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md).
 
-## Segurança (admin sem brecha pra outros programas)
+## 📄 Licença
 
-Nenhum programa rodando sem admin consegue usar o Sunset Boost pra ganhar admin:
+O código fica aberto pra leitura e o app é gratuito pra baixar e usar. Todos os direitos reservados: copiar, modificar ou redistribuir o código ou o app precisa de autorização. Veja [LICENSE](LICENSE).
 
-- **Só o launcher pede admin.** Ele é nativo (NativeAOT) e abre a interface com as variáveis de ambiente do sistema, sem as do usuário (`HKCU\Environment`). Um app .NET aberto com admin direto aceitaria DLL via `DOTNET_ROOT`, `CORECLR_PROFILER_PATH` e afins, que qualquer programa do usuário grava. Os atalhos e a tarefa de logon abrem o launcher; a tarefa recusa qualquer outro .exe.
-- **Com admin, os dados ficam numa pasta protegida** (`%ProgramData%\SunsetBoost`, só administradores gravam). Uma pasta plantada ali antes (dono que não é admin, ou link) é renomeada pro lado e recriada. Assim ninguém troca o log ou o `settings.json` por um link pra fazer o app gravar ou apagar arquivos do sistema.
-
-## Fases
-
-- [x] 0 · Fundação (solução, admin, configurações, log, modo simulação)
-- [x] 1 · Mockup visual (aprovado)
-- [x] 2 · Limpeza (motor + testes + simulação no PC real)
-- [x] 3 · Modo Jogo e restauração (falta o teste real como admin: `modojogo testar`)
-- [x] 4 · Interface completa (fontes do Windows: Impact + Bahnschrift)
-- [x] 5 · Perfis e automação (detecção automática do jogo + atalho Ctrl+Shift+B; perfil personalizado ainda não)
-- [x] 6 · Instalação (.exe único, instalador, início com o Windows, instância única)
-- [ ] 6 · Teste real com o Valorant
+<div align="center">
+<sub>Feito no Brasil, ao pôr do sol. 🌅</sub>
+</div>

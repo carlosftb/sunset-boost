@@ -30,7 +30,7 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
 
 # O app usa o .NET 10 já instalado no PC (por isso o .exe é pequeno)
 $runtimes = & dotnet --list-runtimes 2>$null
-if (-not ($runtimes -match 'Microsoft\.WindowsDesktop\.App 9\.')) {
+if (-not ($runtimes -match 'Microsoft\.WindowsDesktop\.App 10\.')) {
     Say 'Falta o .NET 10 Desktop Runtime: https://dotnet.microsoft.com/download/dotnet/10.0' Red
     exit 1
 }

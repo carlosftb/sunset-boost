@@ -1,0 +1,63 @@
+name: Release
+
+# Pra lançar uma versão: atualize <Version> no Directory.Build.props e o CHANGELOG.md, depois
+#   git tag v0.2.0 && git push origin v0.2.0
+# O workflow testa, gera o instalador e cria a release como RASCUNHO. Você revisa e publica na página de Releases.
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Gerar instalador
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Conferir versão
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'.TrimStart('v')
+          $props = (Select-Xml -Path Directory.Build.props -XPath '//Version').Node.InnerText
+          if ($tag -ne $props) { throw "A tag (v$tag) não bate com <Version> do Directory.Build.props ($props)" }
+          "VERSAO=$tag" >> $env:GITHUB_ENV
+
+      - name: Testar
+        run: dotnet test SunsetBoost.sln -c Release -nologo
+
+      - name: Instalar Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Gerar instalador
+        shell: pwsh
+        run: ./empacotar.ps1 -Versao $env:VERSAO
+
+      - name: Notas da versão (do CHANGELOG.md)
+        shell: pwsh
+        run: |
+          $lines = Get-Content CHANGELOG.md -Encoding utf8
+          $start = [array]::FindIndex($lines, [Predicate[string]]{ param($l) $l -match "^## \[?$([regex]::Escape($env:VERSAO))\]?" })
+          if ($start -lt 0) { throw "O CHANGELOG.md não tem a seção da versão $env:VERSAO" }
+          $notes = @()
+          for ($i = $start + 1; $i -lt $lines.Count -and $lines[$i] -notmatch '^## '; $i++) { $notes += $lines[$i] }
+          $notes += '', '---', '', "**SHA-256 do instalador:** ``$((Get-Content "artifacts/SunsetBoost-Setup-$env:VERSAO.exe.sha256").Split(' ')[0])``"
+          $notes -join "`n" | Set-Content release-notes.md -Encoding utf8
+
+      - name: Criar release (rascunho)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $flags = @('--draft')
+          if ($env:VERSAO -like '0.*') { $flags += '--prerelease' }   # antes da 1.0, aparece como pré-lançamento
+          gh release create '${{ github.ref_name }}' @flags `
+            --title "Sunset Boost $env:VERSAO" --notes-file release-notes.md `
+            "artifacts/SunsetBoost-Setup-$env:VERSAO.exe" "artifacts/SunsetBoost-Setup-$env:VERSAO.exe.sha256"

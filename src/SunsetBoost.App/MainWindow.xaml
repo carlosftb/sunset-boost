@@ -62,8 +62,8 @@
         <!-- ================= BARRA DE TÍTULO ================= -->
         <Grid VerticalAlignment="Top" Height="30" Background="Transparent" MouseLeftButtonDown="TitleBar_MouseDown">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Style="{StaticResource ChromeButton}" Content="—" Click="Minimize_Click" ToolTip="Minimizar" />
-                <Button Style="{StaticResource ChromeButton}" Content="✕" Click="Close_Click" ToolTip="Fechar (continua perto do relógio)" />
+                <Button Style="{StaticResource ChromeButton}" Content="—" AutomationProperties.Name="Minimizar" Click="Minimize_Click" ToolTip="Minimizar" />
+                <Button Style="{StaticResource ChromeButton}" Content="✕" AutomationProperties.Name="Fechar" Click="Close_Click" ToolTip="Fechar (continua perto do relógio)" />
             </StackPanel>
         </Grid>
 
@@ -161,7 +161,8 @@
                         </c:CutBorder>
                     </UniformGrid>
 
-                    <Button x:Name="Cta" Click="Cta_Click" Cursor="Hand" Margin="0,0,0,14" Effect="{StaticResource PinkGlow}">
+                    <Button x:Name="Cta" Click="Cta_Click" Cursor="Hand" Margin="0,0,0,14" Effect="{StaticResource PinkGlow}" FocusVisualStyle="{StaticResource NeonFocus}"
+                            AutomationProperties.Name="{Binding Text, ElementName=CtaTitle}" AutomationProperties.HelpText="{Binding Text, ElementName=CtaSub}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <c:CutBorder x:Name="B" Cut="Parallelogram" CutSize="22" Background="{TemplateBinding Background}" Padding="30,18" BorderBrush="White" BorderThickness="2">
@@ -232,7 +233,7 @@
                                             <TextBlock Text="{Binding Ram}" FontFamily="{StaticResource TitleFont}" FontStyle="Italic" FontSize="24" Foreground="{StaticResource White}" Margin="0,2,0,0" />
                                             <TextBlock Text="{Binding Info}" Foreground="#C3B0E3" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,0,46,0" />
                                         </StackPanel>
-                                        <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding IsOn, Mode=TwoWay}" Visibility="{Binding Unlocked, Converter={StaticResource BoolToVis}}"
+                                        <CheckBox Style="{StaticResource Switch}" AutomationProperties.Name="{Binding Name}" IsChecked="{Binding IsOn, Mode=TwoWay}" Visibility="{Binding Unlocked, Converter={StaticResource BoolToVis}}"
                                                   HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10" />
                                         <TextBlock Text="🔒 PROTEGIDO" Visibility="{Binding Locked, Converter={StaticResource BoolToVis}}" FontFamily="{StaticResource LabelFont}" FontSize="12"
                                                    Foreground="#A99BD6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10" />
@@ -268,7 +269,7 @@
                         <DataTemplate DataType="{x:Type local:TweakRowVm}">
                             <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,0,10,10" Padding="14,10" Height="62">
                                 <DockPanel>
-                                    <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding IsOn, Mode=TwoWay}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
+                                    <CheckBox Style="{StaticResource Switch}" AutomationProperties.Name="{Binding Title}" IsChecked="{Binding IsOn, Mode=TwoWay}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
                                     <Border Style="{StaticResource Badge}" Background="{Binding ImpactBg}" DockPanel.Dock="Right" Margin="8,0,0,0">
                                         <TextBlock Text="{Binding Impact}" Foreground="{Binding ImpactFg}" FontFamily="{StaticResource LabelFont}" FontSize="14" />
                                     </Border>
@@ -293,7 +294,8 @@
                     <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="5" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type local:ProfileVm}">
-                            <Button Tag="{Binding Id}" Click="Profile_Click" Cursor="Hand" Margin="0,0,12,0">
+                            <Button Tag="{Binding Id}" Click="Profile_Click" Cursor="Hand" Margin="0,0,12,0"
+                                    FocusVisualStyle="{StaticResource NeonFocus}" AutomationProperties.Name="{Binding A11yName}">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Grid>
@@ -318,7 +320,7 @@
                 <UniformGrid Columns="2" Margin="0,14,12,0">
                     <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,0,6,0">
                         <DockPanel>
-                            <CheckBox x:Name="AutoSwitch" Style="{StaticResource Switch}" Click="AutoSwitch_Click" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
+                            <CheckBox x:Name="AutoSwitch" AutomationProperties.Name="Automático" Style="{StaticResource Switch}" Click="AutoSwitch_Click" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
                             <StackPanel>
                                 <TextBlock Text="⚡ AUTOMÁTICO" FontFamily="{StaticResource LabelFont}" FontSize="17" Foreground="{StaticResource Gold}" />
                                 <TextBlock Style="{StaticResource Small}" Foreground="{StaticResource White}"
@@ -335,7 +337,7 @@
                         </c:CutBorder>
                         <c:CutBorder Style="{StaticResource PanelBox}" Padding="16,8">
                             <DockPanel>
-                                <CheckBox x:Name="StartupSwitch" Style="{StaticResource Switch}" Click="StartupSwitch_Click" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
+                                <CheckBox x:Name="StartupSwitch" AutomationProperties.Name="Abrir junto com o Windows" Style="{StaticResource Switch}" Click="StartupSwitch_Click" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
                                 <StackPanel>
                                     <TextBlock Text="⏻ ABRIR JUNTO COM O WINDOWS" FontFamily="{StaticResource LabelFont}" FontSize="17" Foreground="{StaticResource Pink}" />
                                     <TextBlock x:Name="StartupText" Style="{StaticResource Small}" Foreground="{StaticResource White}" />
@@ -346,7 +348,7 @@
                 </UniformGrid>
                 <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,8,12,0" Padding="16,8">
                     <DockPanel>
-                        <CheckBox x:Name="PrioritySwitch" Style="{StaticResource Switch}" Click="PrioritySwitch_Click" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <CheckBox x:Name="PrioritySwitch" AutomationProperties.Name="Prioridade alta fixa" Style="{StaticResource Switch}" Click="PrioritySwitch_Click" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
                         <Button x:Name="AddPriorityGame" Style="{StaticResource GhostButton}" Content="+ JOGO" FontSize="15" Padding="16,4"
                                 Click="AddPriorityGame_Click" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0"
                                 ToolTip="Escolha o .exe de outro jogo. Escolher um que já está na lista tira ele." />
