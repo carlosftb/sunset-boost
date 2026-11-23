@@ -73,7 +73,9 @@ Name: "{autoprograms}\Sunset Boost"; Filename: "{app}\SunsetBoost.exe"; Comment:
 Name: "{autodesktop}\Sunset Boost"; Filename: "{app}\SunsetBoost.exe"; Comment: "{cm:ShortcutComment}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\SunsetBoost.exe"; Description: "{cm:LaunchProgram,Sunset Boost}"; Flags: nowait postinstall skipifsilent
+; O postinstall roda como o usuário original (sem admin) e o launcher exige admin: CreateProcess falharia com o erro 740.
+; shellexec usa o ShellExecute, que mostra o UAC como um duplo clique no atalho, e o app abre no usuário certo.
+Filename: "{app}\SunsetBoost.exe"; Description: "{cm:LaunchProgram,Sunset Boost}"; Flags: nowait postinstall skipifsilent shellexec
 
 [UninstallRun]
 ; "Abrir junto com o Windows" (tarefa agendada criada pelo app). Se não existir, o schtasks só falha em silêncio.
