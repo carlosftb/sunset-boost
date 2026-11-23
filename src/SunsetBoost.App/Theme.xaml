@@ -47,6 +47,27 @@
     <DropShadowEffect x:Key="PinkGlow" Color="#FF5FA2" BlurRadius="18" ShadowDepth="0" Opacity="0.85" />
     <DropShadowEffect x:Key="GoldGlow" Color="#FFD166" BlurRadius="16" ShadowDepth="0" Opacity="0.7" />
 
+    <!-- ===== Foco do teclado (só aparece navegando com Tab, como o :focus-visible) ===== -->
+    <Style x:Key="NeonFocus">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="-4" Stroke="{StaticResource Gold}" StrokeThickness="2" SnapsToDevicePixels="True" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- Versão por dentro, pros botões colados na borda da janela -->
+    <Style x:Key="NeonFocusInset">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="2" Stroke="{StaticResource Gold}" StrokeThickness="2" SnapsToDevicePixels="True" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ===== Textos ===== -->
     <Style x:Key="H" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource LabelFont}" />
@@ -80,6 +101,7 @@
         <Setter Property="FontSize" Value="21" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource NeonFocus}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
@@ -107,7 +129,7 @@
     <!-- ===== Interruptor inclinado ===== -->
     <Style x:Key="Switch" TargetType="CheckBox">
         <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="Focusable" Value="False" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource NeonFocus}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
@@ -140,6 +162,7 @@
         <Setter Property="Padding" Value="24,6" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Effect" Value="{StaticResource PinkGlow}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource NeonFocus}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -166,6 +189,7 @@
         <Setter Property="Width" Value="40" />
         <Setter Property="Height" Value="30" />
         <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource NeonFocusInset}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
