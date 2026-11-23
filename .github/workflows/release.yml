@@ -11,14 +11,16 @@ on:
 permissions:
   contents: write
 
+# Actions presas pelo SHA do commit (o comentário diz a versão): uma tag pode ser movida, um SHA não.
+
 jobs:
   release:
     name: Gerar instalador
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: 10.0.x
 
@@ -34,7 +36,7 @@ jobs:
         run: dotnet test SunsetBoost.sln -c Release -nologo --filter "Requires!=Desktop"   # testes com janelas de verdade rodam só no PC
 
       - name: Instalar Inno Setup
-        run: choco install innosetup -y --no-progress
+        run: choco install innosetup --version=6.7.1 -y --no-progress   # versão fixa: o instalador publicado não muda sozinho
 
       - name: Gerar instalador
         shell: pwsh
