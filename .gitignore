@@ -8,8 +8,8 @@ publish/
 *.user
 *.suo
 
-# Backups de driver gerados pelos scripts de ferramentas/
-ferramentas/backup-drivers/
+# Scripts de manutenção do PC de quem desenvolve (listam drivers e programas instalados): ficam só na máquina
+ferramentas/
 
 # Instalador gerado pelo empacotar.ps1
 artifacts/
