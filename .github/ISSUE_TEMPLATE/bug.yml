@@ -1,0 +1,41 @@
+name: 🐛 Algo deu errado
+description: O app travou, fechou o que não devia ou não restaurou alguma coisa
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Valeu por reportar! Se for uma falha de segurança, **não** abra issue: veja o SECURITY.md.
+  - type: textarea
+    id: oque
+    attributes:
+      label: O que aconteceu
+      description: O que você fez, o que esperava e o que aconteceu de verdade.
+    validations:
+      required: true
+  - type: input
+    id: versao
+    attributes:
+      label: Versão do Sunset Boost
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: windows
+    attributes:
+      label: Windows
+      options:
+        - Windows 11
+        - Windows 10
+    validations:
+      required: true
+  - type: input
+    id: jogo
+    attributes:
+      label: Jogo e perfil
+      placeholder: "Valorant, perfil Valorant"
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Anexe o arquivo mais recente da pasta C:\ProgramData\SunsetBoost\logs (arraste pra cá).

@@ -1,0 +1,11 @@
+name: 💡 Ideia
+description: Um jogo novo pros perfis, um ajuste, uma melhoria
+labels: [ideia]
+body:
+  - type: textarea
+    id: ideia
+    attributes:
+      label: Qual é a ideia
+      description: O que você queria que o Sunset Boost fizesse e por quê.
+    validations:
+      required: true

@@ -10,3 +10,6 @@ publish/
 
 # Backups de driver gerados pelos scripts de ferramentas/
 ferramentas/backup-drivers/
+
+# Instalador gerado pelo empacotar.ps1
+artifacts/
