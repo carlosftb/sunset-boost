@@ -166,6 +166,9 @@ public partial class MainWindow : Window
         var mem = MemoryInfo.Read();
         // RAM e CPU são números do Windows inteiro; a GPU vem de um contador por processo, então pausa com jogo aberto
         var (cpu, gpu) = _monitor.Sample(withGpu: _gameOpen is null);
+#if DEBUG
+        if (App.Capture is not null) (mem, cpu, gpu) = (DemoData.Memory, DemoData.Cpu, DemoData.Gpu);
+#endif
 
         FreeRam.Text = Fmt.Bytes(mem.AvailableBytes);
         TotalRam.Text = $"de {Fmt.Bytes(mem.TotalBytes)}";
@@ -197,7 +200,13 @@ public partial class MainWindow : Window
         if (_busy) return;
         // Jogo aberto: a lista de apps não é atualizada (ela abre os outros processos pra medir a RAM)
         if (_gameOpen is not null) { StatFreeWho.Text = $"{_gameOpen.DisplayName} aberto: lista pausada até o jogo fechar"; return; }
-        try { _plan = await Task.Run(_boost.BuildPlan); }
+        try
+        {
+            _plan = await Task.Run(_boost.BuildPlan);
+#if DEBUG
+            if (App.Capture is not null) _plan = DemoData.Plan(_boost.Profile);
+#endif
+        }
         catch (Exception ex) { AppLog.Error("Falha ao ler processos", ex); return; }
 
         int procs = _plan.Groups.Sum(g => g.Processes.Count);
@@ -363,7 +372,11 @@ public partial class MainWindow : Window
 
     private void RefreshDiagnostics()
     {
-        DiagItems.ItemsSource = DiagnosticsService.Run().Select(d => d.Status switch
+        IEnumerable<DiagItem> items = DiagnosticsService.Run();
+#if DEBUG
+        if (App.Capture is not null) items = DemoData.Diagnostics();
+#endif
+        DiagItems.ItemsSource = items.Select(d => d.Status switch
         {
             DiagStatus.Ok => new DiagVm("✓", Res("Mint"), d.Title, d.Detail),
             DiagStatus.Recommend => new DiagVm("!", Res("Gold"), d.Title, d.Detail),
@@ -704,10 +717,6 @@ public partial class MainWindow : Window
         var enc = new PngBitmapEncoder();
         enc.Frames.Add(BitmapFrame.Create(rtb));
         await using (var fs = File.Create(file)) enc.Save(fs);
-
-        var me = System.Diagnostics.Process.GetCurrentProcess();
-        var priv = new Core.Processes.ProcessScanner().Snapshot().First(p => p.Pid == Environment.ProcessId).PrivateBytes;
-        File.WriteAllText(file + ".txt", $"privateWS={priv}; workingSet={me.WorkingSet64}");
         _exiting = true;
         Application.Current.Shutdown();
     }

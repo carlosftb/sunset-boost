@@ -15,7 +15,6 @@ C# + WPF, .NET 10, só Windows 10 (2004) ou mais novo, 64 bits.
 | `tests/SunsetBoost.Core.Tests` | Testes automáticos (xUnit). |
 | `installer/` | Roteiro do instalador (Inno Setup) e as imagens dele. |
 | `design/mockup.html` | Mockup visual da Fase 1 (abrir no navegador). |
-| `ferramentas/` | Scripts avulsos de manutenção do Windows, fora do app. |
 
 Configurações e logs: com admin, em `%ProgramData%\SunsetBoost\` (só administradores alteram; a versão anterior usava a pasta abaixo e as configurações são copiadas uma vez). Sem admin (desenvolvimento, CLI), em `%LOCALAPPDATA%\SunsetBoost\`.
 
@@ -51,7 +50,7 @@ dotnet run --project src/SunsetBoost.Cli -- edgeleve
 
 Perfis: `valorant`, `lol`, `steam`, `epic`, `generico`.
 
-No build Debug, `--captura <aba> <arquivo.png>` abre o app, tira um print da aba (`home`, `clean`, `game`, `prof`, `diag`) e fecha. É assim que as imagens de `docs/img` são geradas.
+No build Debug, `--captura <aba> <arquivo.png>` abre o app, tira um print da aba (`home`, `clean`, `game`, `prof`, `diag`) e fecha. É assim que as imagens de `docs/img` são geradas. Nesse modo, processos, memória e diagnóstico vêm de dados fixos (`DemoData.cs`), pra que o print não mostre o PC de quem o gerou.
 
 ## Instalar a partir do código
 
