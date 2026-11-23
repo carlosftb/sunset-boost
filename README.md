@@ -4,13 +4,13 @@
 
 **Modo jogo com um clique. Quando a partida acaba, tudo volta como estava.**
 
-[![Baixar](https://img.shields.io/github/v/release/carlosftb/sunset-boost?include_prereleases&label=baixar&style=for-the-badge&color=ff5fa2&labelColor=140b2e)](https://github.com/carlosftb/sunset-boost/releases/latest)
+[![Baixar](https://img.shields.io/github/v/release/carlosftb/sunset-boost?include_prereleases&label=baixar&style=for-the-badge&color=ff5fa2&labelColor=140b2e)](https://github.com/carlosftb/sunset-boost/releases)
 [![Downloads](https://img.shields.io/github/downloads/carlosftb/sunset-boost/total?label=downloads&style=for-the-badge&color=ff8a3d&labelColor=140b2e)](https://github.com/carlosftb/sunset-boost/releases)
 [![Windows 10 e 11](https://img.shields.io/badge/Windows-10%20%7C%2011-3ee6ff?style=for-the-badge&labelColor=140b2e)](#-instalar)
 
 ![Tela inicial do Sunset Boost](docs/img/home.png)
 
-### [⬇️ Baixar o Sunset Boost](https://github.com/carlosftb/sunset-boost/releases/latest)
+### [⬇️ Baixar o Sunset Boost](https://github.com/carlosftb/sunset-boost/releases)
 
 </div>
 
@@ -52,7 +52,7 @@ Jogos, anti-cheats e processos do Windows nunca são tocados.
 
 ## 📥 Instalar
 
-1. Baixe o `SunsetBoost-Setup-<versão>.exe` na [página da última versão](https://github.com/carlosftb/sunset-boost/releases/latest).
+1. Baixe o `SunsetBoost-Setup-<versão>.exe` na [página de downloads](https://github.com/carlosftb/sunset-boost/releases).
 2. Abra o instalador e siga os passos. Ele instala em `C:\Program Files\SunsetBoost` e cria os atalhos.
 3. Abra o **Sunset Boost** pelo atalho. O Windows pede permissão de administrador: é ela que deixa o app pausar serviços e limpar a memória.
 
