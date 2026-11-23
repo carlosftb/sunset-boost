@@ -99,13 +99,29 @@ As configurações e logs ficam em `C:\ProgramData\SunsetBoost`. Pode apagar ess
 
 ## 💜 Apoie o projeto
 
-O Sunset Boost é gratuito. Se ele ajudou nas suas partidas e você quiser apoiar, dá pra doar qualquer valor por Pix:
+<p align="center">
+  <b>Caso queira me apoiar a continuar atualizando a ferramenta, faça uma doação.</b>
+</p>
+
+<p align="center">
+  <img src="docs/img/pix-qr.png" width="220" alt="QR code Pix para doação ao Sunset Boost">
+</p>
+
+<p align="center">Aponte a câmera do app do seu banco pro QR code, ou use um dos códigos abaixo.</p>
+
+**Pix copia e cola:**
+
+```text
+00020126580014br.gov.bcb.pix0136f0db43bb-0fa4-4dd4-bceb-0eb4b3ba3bdd5204000053039865802BR5912Carlos Silva6009SAO PAULO62070503***6304E54A
+```
 
 **Chave Pix (aleatória):**
 
 ```text
 f0db43bb-0fa4-4dd4-bceb-0eb4b3ba3bdd
 ```
+
+O valor fica a seu critério: o app do banco pede na hora de pagar.
 
 Contar pros amigos e abrir issues com bugs e ideias também ajuda muito.
 
