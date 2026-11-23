@@ -23,4 +23,4 @@ jobs:
         run: dotnet build SunsetBoost.sln -c Release -nologo
 
       - name: Testar
-        run: dotnet test SunsetBoost.sln -c Release --no-build -nologo
+        run: dotnet test SunsetBoost.sln -c Release --no-build -nologo --filter "Requires!=Desktop"   # testes com janelas de verdade rodam só no PC

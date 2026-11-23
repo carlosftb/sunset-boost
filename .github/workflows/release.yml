@@ -31,7 +31,7 @@ jobs:
           "VERSAO=$tag" >> $env:GITHUB_ENV
 
       - name: Testar
-        run: dotnet test SunsetBoost.sln -c Release -nologo
+        run: dotnet test SunsetBoost.sln -c Release -nologo --filter "Requires!=Desktop"   # testes com janelas de verdade rodam só no PC
 
       - name: Instalar Inno Setup
         run: choco install innosetup -y --no-progress

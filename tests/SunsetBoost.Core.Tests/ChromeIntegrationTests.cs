@@ -8,6 +8,7 @@ namespace SunsetBoost.Core.Tests;
 /// e o modo leve só pode tocar nas janelas desses processos. Pula se o Chrome não estiver instalado.
 /// </summary>
 [Trait("Category", "Integration")]
+[Trait("Requires", "Desktop")] // abre janelas de verdade: instável na máquina do CI, fica fora dele
 public class ChromeIntegrationTests(Xunit.Abstractions.ITestOutputHelper output)
 {
     private const string ChromeExe = @"C:\Program Files\Google\Chrome\Application\chrome.exe";

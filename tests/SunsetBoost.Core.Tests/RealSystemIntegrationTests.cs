@@ -9,6 +9,7 @@ namespace SunsetBoost.Core.Tests;
 /// Testes no Windows de verdade, só com processos descartáveis que o próprio teste abre.
 /// </summary>
 [Trait("Category", "Integration")]
+[Trait("Requires", "Desktop")] // abre janelas de verdade: instável na máquina do CI, fica fora dele
 public class RealSystemIntegrationTests
 {
     private static ProcessInfo Find(int pid) => new ProcessScanner().Snapshot().Single(p => p.Pid == pid);
