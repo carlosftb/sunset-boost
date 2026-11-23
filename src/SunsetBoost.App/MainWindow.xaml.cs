@@ -335,13 +335,30 @@ public partial class MainWindow : Window
 
     private async void Profile_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: string id }) return;
+        if (sender is not Button { Tag: string id } button) return;
+        bool hadKeyboardFocus = button.IsKeyboardFocused;
         _settings.ActiveProfileId = id;
         App.SaveSettings();
         AppLog.Info($"Perfil: {id}");
         RefreshProfiles();
+        if (hadKeyboardFocus) FocusProfile(id);
         RefreshHeader();
         await RefreshPlanAsync(rebuildCards: true);
+    }
+
+    /// <summary>O RefreshProfiles recria os cards: devolve o foco do teclado ao card escolhido, senão ele some.</summary>
+    private void FocusProfile(string id)
+    {
+        Profiles.UpdateLayout();
+        for (int i = 0; i < Profiles.Items.Count; i++)
+        {
+            if (Profiles.Items[i] is not ProfileVm { Id: var itemId } || itemId != id) continue;
+            if (Profiles.ItemContainerGenerator.ContainerFromIndex(i) is DependencyObject container
+                && VisualTreeHelper.GetChildrenCount(container) > 0
+                && VisualTreeHelper.GetChild(container, 0) is Button card)
+                Keyboard.Focus(card);
+            return;
+        }
     }
 
     private void RefreshDiagnostics()

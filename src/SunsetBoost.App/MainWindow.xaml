@@ -161,7 +161,8 @@
                         </c:CutBorder>
                     </UniformGrid>
 
-                    <Button x:Name="Cta" Click="Cta_Click" Cursor="Hand" Margin="0,0,0,14" Effect="{StaticResource PinkGlow}" FocusVisualStyle="{StaticResource NeonFocus}">
+                    <Button x:Name="Cta" Click="Cta_Click" Cursor="Hand" Margin="0,0,0,14" Effect="{StaticResource PinkGlow}" FocusVisualStyle="{StaticResource NeonFocus}"
+                            AutomationProperties.Name="{Binding Text, ElementName=CtaTitle}" AutomationProperties.HelpText="{Binding Text, ElementName=CtaSub}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <c:CutBorder x:Name="B" Cut="Parallelogram" CutSize="22" Background="{TemplateBinding Background}" Padding="30,18" BorderBrush="White" BorderThickness="2">
@@ -294,7 +295,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type local:ProfileVm}">
                             <Button Tag="{Binding Id}" Click="Profile_Click" Cursor="Hand" Margin="0,0,12,0"
-                                    FocusVisualStyle="{StaticResource NeonFocus}" AutomationProperties.Name="{Binding Name}">
+                                    FocusVisualStyle="{StaticResource NeonFocus}" AutomationProperties.Name="{Binding A11yName}">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Grid>

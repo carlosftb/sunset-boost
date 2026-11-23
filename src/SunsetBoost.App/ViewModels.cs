@@ -70,7 +70,11 @@ public sealed class TweakRowVm : Observable
     }
 }
 
-public sealed record ProfileVm(string Id, string Name, string Detail, Brush Background, bool IsSelected);
+public sealed record ProfileVm(string Id, string Name, string Detail, Brush Background, bool IsSelected)
+{
+    /// <summary>Nome lido pelo leitor de tela: o perfil ativo só aparece pela borda branca, então vai no nome.</summary>
+    public string A11yName => IsSelected ? $"{Name}, perfil ativo" : Name;
+}
 
 public sealed record DiagVm(string Mark, Brush MarkBrush, string Title, string Detail);
 
