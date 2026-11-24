@@ -65,7 +65,7 @@ O instalador ainda não tem assinatura digital (um certificado custa caro pra um
 Pra ter certeza de que o arquivo é o mesmo que foi publicado, compare o SHA-256 dele com o da página da versão:
 
 ```powershell
-Get-FileHash .\SunsetBoost-Setup-0.2.0.exe -Algorithm SHA256
+Get-FileHash .\SunsetBoost-Setup-0.3.0.exe -Algorithm SHA256
 ```
 
 O instalador é gerado pelo [GitHub Actions](.github/workflows/release.yml) a partir deste código, nunca num PC pessoal.
