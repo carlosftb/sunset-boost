@@ -16,6 +16,7 @@ using SunsetBoost.Core.Infrastructure;
 using SunsetBoost.Core.Memory;
 using SunsetBoost.Core.Monitoring;
 using SunsetBoost.Core.Tweaks;
+using SunsetBoost.Core.Updates;
 
 namespace SunsetBoost.App;
 
@@ -77,12 +78,15 @@ public partial class MainWindow : Window
         _slow.Start();
 
         AutoSwitch.IsChecked = _settings.AutoBoost;
+        UpdateAutoCheck.IsChecked = _settings.CheckUpdates;
+        RefreshUpdateUi();
         RefreshStartup();
         RefreshPriority();
         RefreshGpu();
         if (App.Capture is { } cap) { HotkeyText.Text = $"{_settings.Hotkey} liga e desliga o Modo Jogo de qualquer lugar, até com o jogo aberto."; await CaptureAndExit(cap.Tab, cap.File); return; }
         SetupHotkey();
         _autoTimer.Start();
+        if (_settings.CheckUpdates) _ = CheckForUpdateAsync(quiet: true, delay: TimeSpan.FromSeconds(8));
         if (App.StartMinimized) { Hide(); Opacity = 1; ShowInTaskbar = true; AppLog.Info("Iniciado minimizado perto do relógio"); }
 
         // Recuperação: se ficou uma cópia pendente (PC travou ou app caiu no meio do Modo Jogo)
@@ -636,6 +640,167 @@ public partial class MainWindow : Window
         AppLog.Info($"Placa de vídeo: {path} adicionado" + (errors.Count > 0 ? $" | erro: {errors[0]}" : ""));
         Status(errors.Count > 0 ? errors[0] : on ? $"{name} adicionado: já abre na placa dedicada" : $"{name} adicionado: ligue a chave pra valer");
         RefreshGpu();
+    }
+
+    // ===================================================================== atualizações
+
+    private static readonly Lazy<System.Net.Http.HttpClient> Http = new(() => Updater.CreateClient());
+    private UpdateInfo? _update;
+    private DownloadedInstaller? _installer;
+    private bool _updateBusy;
+
+    /// <summary>
+    /// Só baixa e instala com o app em admin: aí o download fica na pasta updates dentro do %ProgramData%, que só admin altera.
+    /// Sem admin a pasta é a do usuário, e qualquer programa sem admin trocaria o instalador antes do UAC. Então sem admin
+    /// o botão só abre a página da versão no navegador.
+    /// </summary>
+    private static bool CanInstallUpdates => App.Paths.IsProtected;
+
+
+    private void RefreshUpdateUi()
+    {
+        var cur = Updater.Display(Updater.Current);
+        VersionLabel.Text = $"V I C E   M O D E  ·  v {string.Join(" ", cur.ToCharArray())}";
+        if (_updateBusy) return; // o texto do progresso fica até terminar
+        UpdateButton.IsEnabled = true;
+        if (_installer is not null && _update is not null)
+        {
+            UpdateButton.Content = $"INSTALAR v{Updater.Display(_update.Version)}";
+            UpdateText.Text = $"Instalada: v{cur} · v{Updater.Display(_update.Version)} baixada e conferida";
+        }
+        else if (_update is not null && !CanInstallUpdates)
+        {
+            UpdateButton.Content = $"ABRIR PÁGINA DA v{Updater.Display(_update.Version)}";
+            UpdateText.Text = $"Instalada: v{cur} · versão nova: v{Updater.Display(_update.Version)} · sem admin, baixe pela página";
+        }
+        else if (_update is not null)
+        {
+            UpdateButton.Content = $"BAIXAR v{Updater.Display(_update.Version)}";
+            UpdateText.Text = $"Instalada: v{cur} · versão nova: v{Updater.Display(_update.Version)}";
+        }
+        else
+        {
+            UpdateButton.Content = "VERIFICAR ATUALIZAÇÕES";
+            UpdateText.Text = $"Instalada: v{cur}";
+        }
+        UpdatePill.Visibility = _update is null ? Visibility.Collapsed : Visibility.Visible;
+        UpdatePill.Content = _update is null ? "" : _installer is null ? $"⬆ NOVA VERSÃO v{Updater.Display(_update.Version)}" : $"⬆ INSTALAR v{Updater.Display(_update.Version)}";
+    }
+
+    private void UpdateAutoCheck_Click(object sender, RoutedEventArgs e)
+    {
+        _settings.CheckUpdates = UpdateAutoCheck.IsChecked == true;
+        App.SaveSettings();
+        Status(_settings.CheckUpdates ? "Vai procurar versão nova sempre que abrir" : "Não procura mais versão nova ao abrir (o botão continua funcionando)");
+    }
+
+    /// <param name="quiet">Ao abrir: sem versão nova ou sem internet, não fala nada (só no log).</param>
+    private async Task CheckForUpdateAsync(bool quiet, TimeSpan delay = default)
+    {
+        if (_updateBusy) return;
+        if (delay > TimeSpan.Zero) await Task.Delay(delay);
+        _updateBusy = true;
+        UpdateButton.IsEnabled = false;
+        UpdateText.Text = "Procurando versão nova…";
+        try
+        {
+            _update = await Updater.CheckAsync(Http.Value, Updater.Current);
+            _installer = null;
+            AppLog.Info(_update is null ? "Atualizações: em dia" : $"Atualizações: v{Updater.Display(_update.Version)} disponível");
+            if (_update is not null) Status($"Versão nova do Sunset Boost: v{Updater.Display(_update.Version)}. Clique em ⬆ NOVA VERSÃO pra baixar.");
+            else if (!quiet) Status($"Você já está na versão mais nova (v{Updater.Display(Updater.Current)})");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn($"Atualizações: não deu pra verificar: {ex.Message}");
+            if (!quiet) Status("Não deu pra verificar atualizações: " + ex.Message);
+        }
+        finally
+        {
+            _updateBusy = false;
+            RefreshUpdateUi();
+        }
+    }
+
+    private async void UpdateAction_Click(object sender, RoutedEventArgs e)
+    {
+        if (_updateBusy) return;
+        if (_update is null) { await CheckForUpdateAsync(quiet: false); return; }
+        if (!CanInstallUpdates) { OpenReleasePage(_update); return; }
+        if (_installer is null) { await DownloadUpdateAsync(); if (_installer is null) return; }
+        InstallUpdate();
+    }
+
+    private async Task DownloadUpdateAsync()
+    {
+        var u = _update!;
+        // Notas da release sem a linha do SHA-256 (vem depois do "---")
+        var notes = u.Notes.Split("\n---")[0].Trim();
+        if (notes.Length > 700) notes = notes[..700] + "…";
+        if (MessageBox.Show($"Baixar o Sunset Boost v{Updater.Display(u.Version)} ({u.InstallerSize / 1024.0 / 1024:0.#} MB) do GitHub?\n\n{notes}",
+                "Atualização", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+
+        _updateBusy = true;
+        UpdateButton.IsEnabled = false;
+        var progress = new Progress<double>(p => UpdateText.Text = $"Baixando v{Updater.Display(u.Version)}… {p:P0}");
+        try
+        {
+            _installer = await Updater.DownloadAsync(Http.Value, u, App.Paths.UpdatesDir, progress);
+            AppLog.Info($"Atualizações: {u.InstallerName} baixado e conferido (SHA-256 da release)");
+        }
+        catch (Exception ex)
+        {
+            _installer = null;
+            AppLog.Warn($"Atualizações: download recusado: {ex.Message}");
+            MessageBox.Show($"A atualização não foi instalada: {ex.Message}.\n\nSe continuar, baixe pela página: {u.PageUrl}",
+                "Atualização", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            _updateBusy = false;
+            RefreshUpdateUi();
+        }
+    }
+
+    private void OpenReleasePage(UpdateInfo u)
+    {
+        try
+        {
+            // Endereço montado pelo app (github.com/carlosftb/sunset-boost/releases/tag/vX.Y.Z), não vem da resposta
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(u.PageUrl.ToString()) { UseShellExecute = true });
+            Status($"Página da v{Updater.Display(u.Version)} aberta no navegador. Sem admin, o app não baixa nem instala sozinho.");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn($"Atualizações: não deu pra abrir a página: {ex.Message}");
+            Status($"Não deu pra abrir o navegador. A versão nova está em {u.PageUrl}");
+        }
+    }
+
+    private void InstallUpdate()
+    {
+        if (_boost.GameMode.IsActive)
+        {
+            MessageBox.Show("O Modo Jogo está ativo. Clique em RESTAURAR TUDO antes de atualizar: a versão nova não pode começar com os ajustes da antiga aplicados.",
+                "Atualização", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        var v = Updater.Display(_update!.Version);
+        if (MessageBox.Show($"Instalar a v{v} agora?\n\nO Windows vai pedir permissão de administrador pro instalador (confira: \"Sunset Boost\"). " +
+                "O Sunset Boost fecha agora e o instalador oferece abrir de novo no final.",
+                "Atualização", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) return;
+        try
+        {
+            InstallerLauncher.Start(_installer!);
+            AppLog.Info($"Atualizações: instalador da v{v} aberto; fechando o app");
+            ExitApp();
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn($"Atualizações: não deu pra abrir o instalador: {ex.Message}");
+            Status("Não deu pra abrir o instalador: " + ex.Message);
+            if (ex is InvalidDataException) { _installer = null; RefreshUpdateUi(); } // arquivo apagado: volta pra BAIXAR
+        }
     }
 
     /// <summary>A tarefa abre o launcher instalado ao lado (ambiente limpo), nunca este .exe direto.</summary>

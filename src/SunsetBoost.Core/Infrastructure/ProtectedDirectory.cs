@@ -18,7 +18,7 @@ public static class ProtectedDirectory
     /// <summary>O que o app usa dentro da pasta. Se algum desses virou link, a pasta inteira deixa de ser confiável.</summary>
     internal static readonly string[] KnownEntries =
     {
-        "logs", "settings.json", "settings.json.tmp", "snapshot.json", "snapshot.json.tmp", "snapshot.json.corrompido",
+        "logs", "updates", "settings.json", "settings.json.tmp", "snapshot.json", "snapshot.json.tmp", "snapshot.json.corrompido",
     };
 
     /// <summary>

@@ -51,6 +51,8 @@ ptbr.GameModeActiveSetup=O Modo Jogo de uma versão antiga do Sunset Boost ainda
 en.GameModeActiveSetup=Game Mode from an older Sunset Boost version is still active.%n%nOpen Sunset Boost, click RESTORE ALL and run the installer again.
 ptbr.GameModeActiveUninstall=O Modo Jogo ainda está ativo: as configurações de antes ainda não foram restauradas.%n%nAbra o Sunset Boost, clique em RESTAURAR TUDO e desinstale de novo.
 en.GameModeActiveUninstall=Game Mode is still active: your previous settings haven't been restored yet.%n%nOpen Sunset Boost, click RESTORE ALL and uninstall again.
+ptbr.GameModeActiveUpdate=O Modo Jogo está ativo: as configurações de antes ainda não foram restauradas.%n%nAbra o Sunset Boost, clique em RESTAURAR TUDO e rode o instalador de novo.
+en.GameModeActiveUpdate=Game Mode is active: your previous settings haven't been restored yet.%n%nOpen Sunset Boost, click RESTORE ALL and run the installer again.
 ptbr.ShortcutComment=Modo jogo com um clique
 en.ShortcutComment=One-click game mode
 
@@ -89,6 +91,12 @@ begin
   if FileExists(ExpandConstant('{localappdata}\SunsetBoost\snapshot.json')) then
   begin
     MsgBox(CustomMessage('GameModeActiveSetup'), mbError, MB_OK);
+    Result := False;
+  end
+  // Atualizar com o Modo Jogo ativo trocaria o app no meio: a versão nova abriria com ajustes aplicados por outra
+  else if FileExists(ExpandConstant('{commonappdata}\SunsetBoost\snapshot.json')) then
+  begin
+    MsgBox(CustomMessage('GameModeActiveUpdate'), mbError, MB_OK);
     Result := False;
   end;
 end;

@@ -61,12 +61,29 @@ if (command == "diagnostico")
         Console.WriteLine($"[{item.Status}] {item.Title}{Environment.NewLine}    {item.Detail}");
     return 0;
 }
+if (command == "atualizacao")
+{
+    // Procura versão nova no GitHub. Com --baixar-para <pasta>, baixa e confere o SHA-256 (nunca executa).
+    // --como 0.0.0 finge ser uma versão antiga (pra testar o download da versão atual).
+    var current = Opt("--como") is { Length: > 0 } fake && Version.TryParse(fake, out var fv) ? fv : SunsetBoost.Core.Updates.Updater.Current;
+    using var http = SunsetBoost.Core.Updates.Updater.CreateClient();
+    var info = await SunsetBoost.Core.Updates.Updater.CheckAsync(http, current);
+    Console.WriteLine($"Instalada: {SunsetBoost.Core.Updates.Updater.Display(current)}");
+    if (info is null) { Console.WriteLine("Em dia."); return 0; }
+    Console.WriteLine($"Nova: {info.Tag} · {info.InstallerName} · {info.InstallerSize} bytes\n  {info.InstallerUrl}\n  {info.PageUrl}");
+    if (Opt("--baixar-para") is { Length: > 0 } dir)
+    {
+        var path = (await SunsetBoost.Core.Updates.Updater.DownloadAsync(http, info, dir)).Path;
+        Console.WriteLine($"Baixado e conferido (SHA-256 da release): {path}");
+    }
+    return 0;
+}
 if (command == "modojogo")
     return GameModeCommand(args.Skip(1).FirstOrDefault(a => !a.StartsWith("--"))?.ToLowerInvariant() ?? "status");
 
 if (command is not ("simular" or "limpar"))
 {
-    Console.WriteLine("Comandos: simular | limpar | memoria | diagnostico | modojogo [status|entrar|sair|testar]");
+    Console.WriteLine("Comandos: simular | limpar | memoria | diagnostico | atualizacao | modojogo [status|entrar|sair|testar]");
     return 1;
 }
 

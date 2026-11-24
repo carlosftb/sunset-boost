@@ -19,6 +19,8 @@ public sealed class AppPaths
     public string SettingsFile => Path.Combine(Root, "settings.json");
     public string LogsDir => Path.Combine(Root, "logs");
     public string SnapshotFile => Path.Combine(Root, "snapshot.json");
+    /// <summary>Onde o instalador de uma atualização é baixado (herda a proteção: só admin grava).</summary>
+    public string UpdatesDir => Path.Combine(Root, "updates");
 
     /// <summary>Avisos de quando a pasta foi preparada. O log só abre depois: quem chama manda pra ele.</summary>
     public IReadOnlyList<string> Notes => _notes;
