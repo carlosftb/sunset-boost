@@ -289,10 +289,10 @@ public partial class MainWindow : Window
         {
             new("fechar-apps", "Fechar apps pesados", "Os apps marcados na aba Limpeza", "ALTO", Res("Pink"), Hex("#2A0718"),
                 _settings.CloseApps, null, r => { _settings.CloseApps = r.IsOn; App.SaveSettings(); }),
-            // Ligado = fecha os navegadores. Desligado = modo leve (só a 1ª aba + limite de RAM em cada um)
-            new("fechar-edge", "Fechar os navegadores",
-                $"Desligado: {Browsers.Names} leves (1 aba, {(_settings.EdgeLimitMB / 1024.0):0.#} GB) · Opera fecha", "ALTO", Res("Pink"), Hex("#2A0718"),
-                !_settings.EdgeLite, null, r => { _settings.EdgeLite = !r.IsOn; App.SaveSettings(); AppLog.Info($"Navegadores: {(r.IsOn ? "fechar" : "modo leve")}"); }),
+            // Ligado = limite de RAM em cada navegador. Desligado = o app não mexe nos navegadores. Nunca fecha nenhum.
+            new("limitar-navegadores", $"Limitar os navegadores a {(_settings.EdgeLimitMB / 1024.0):0.#} GB",
+                $"{Browsers.Names} · passou do limite, fecha as abas mais pesadas", "MÉDIO", Res("Orange"), Hex("#3A1500"),
+                _settings.EdgeLite, null, r => { _settings.EdgeLite = r.IsOn; App.SaveSettings(); AppLog.Info($"Limite dos navegadores: {(r.IsOn ? "ligado" : "desligado")}"); }),
             new("standby", "Limpar standby list", "Como o ISLC · menos travadinhas", "MÉDIO", Res("Orange"), Hex("#3A1500"),
                 _settings.PurgeStandbyList, admin ? null : "precisa de admin · ", r => { _settings.PurgeStandbyList = r.IsOn; App.SaveSettings(); }),
         };
@@ -842,7 +842,6 @@ public partial class MainWindow : Window
         SetBusy(true, "Limpando…");
         try
         {
-            // Mesma regra do Modo Jogo: com o modo leve, os navegadores só são enxugados, nunca fechados
             var report = await Task.Run(_boost.CleanNow);
             var freed = FreedText(report);
             var errors = report.Groups.Sum(g => g.Failed);

@@ -26,13 +26,6 @@ public static class AppCatalog
     public static readonly IReadOnlyList<AppDefinition> All = new AppDefinition[]
     {
         // ✅ Fecha por padrão
-        new("edge", "Microsoft Edge", AppCategory.Browser, CleanupList.CloseByDefault, new[] { "msedge" },
-            "O Startup boost mantém o Edge na memória mesmo fechado (veja Diagnóstico)."),
-        new("chrome", "Google Chrome", AppCategory.Browser, CleanupList.CloseByDefault, new[] { "chrome" }),
-        new("firefox", "Firefox", AppCategory.Browser, CleanupList.CloseByDefault, new[] { "firefox" }),
-        new("opera", "Opera / Opera GX", AppCategory.Browser, CleanupList.CloseByDefault, new[] { "opera", "opera_crashreporter", "opera_gx_splash" }),
-        new("brave", "Brave", AppCategory.Browser, CleanupList.CloseByDefault, new[] { "brave" }),
-        new("vivaldi", "Vivaldi", AppCategory.Browser, CleanupList.CloseByDefault, new[] { "vivaldi" }),
         new("steam", "Steam", AppCategory.Launcher, CleanupList.CloseByDefault, new[] { "steam", "steamwebhelper" }),
         new("epic", "Epic Games Launcher", AppCategory.Launcher, CleanupList.CloseByDefault,
             new[] { "epicgameslauncher", "epicwebhelper", "epiconlineservicesuserhelper" }),
@@ -49,6 +42,14 @@ public static class AppCatalog
             new[] { "onedrivestandaloneupdater", "adobearm", "googleupdate", "microsoftedgeupdate", "jusched", "bravecrashhandler", "bravecrashhandler64", "braveupdate" }),
 
         // ✋ Você decide
+        // Navegadores ficam abertos por padrão: no Modo Jogo, a chave "Limitar os navegadores" só segura a memória deles
+        new("edge", "Microsoft Edge", AppCategory.Browser, CleanupList.UserDecides, new[] { "msedge" },
+            "O Startup boost mantém o Edge na memória mesmo fechado (veja Diagnóstico)."),
+        new("chrome", "Google Chrome", AppCategory.Browser, CleanupList.UserDecides, new[] { "chrome" }),
+        new("firefox", "Firefox", AppCategory.Browser, CleanupList.UserDecides, new[] { "firefox" }),
+        new("opera", "Opera / Opera GX", AppCategory.Browser, CleanupList.UserDecides, new[] { "opera", "opera_crashreporter", "opera_gx_splash" }),
+        new("brave", "Brave", AppCategory.Browser, CleanupList.UserDecides, new[] { "brave" }),
+        new("vivaldi", "Vivaldi", AppCategory.Browser, CleanupList.UserDecides, new[] { "vivaldi" }),
         new("discord", "Discord", AppCategory.Communication, CleanupList.UserDecides, new[] { "discord" }),
         new("spotify", "Spotify", AppCategory.Media, CleanupList.UserDecides, new[] { "spotify", "spotifylauncher", "spotifyxboxgamebarwebview" }),
         new("obs", "OBS Studio", AppCategory.Streaming, CleanupList.UserDecides, new[] { "obs64", "obs32", "obs-browser-page" }),

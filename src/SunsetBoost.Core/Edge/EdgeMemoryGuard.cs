@@ -19,7 +19,7 @@ public sealed record GuardDecision(long TotalBytes, IReadOnlyList<EdgeProc> Kill
 /// Limite rígido de memória por navegador (Edge, Chrome, Opera GX: todos Chromium, mesmos tipos de processo).
 /// O próprio Windows não consegue pôr as abas já abertas num teto só (elas já estão em grupos isolados
 /// do navegador), então o app vigia a cada 2 s: passou do limite → derruba as abas que mais gastam;
-/// depois extensões. Nunca fecha o navegador inteiro: no modo leve ele fica aberto (fechar é a outra opção da chave).
+/// depois extensões. Nunca fecha o navegador inteiro.
 /// </summary>
 public static class EdgeMemoryGuard
 {

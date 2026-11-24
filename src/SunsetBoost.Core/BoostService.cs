@@ -47,7 +47,6 @@ public sealed class BoostService
         {
             var plan = BuildPlan();
             if (!_settings.CloseApps) plan = plan with { Groups = plan.Groups.Select(g => g with { WillClose = false }).ToList() };
-            plan = ApplyBrowserRule(plan, sim);
             cleanup = new CleanupExecutor(_actions(sim)).Run(plan, CleanupOptions.FromSettings(_settings));
         }
 
@@ -61,33 +60,14 @@ public sealed class BoostService
         return new BoostResult(cleanup, tweaks, Array.Empty<string>());
     }
 
-    /// <summary>O botão "Limpar agora" da aba Limpeza: mesma regra dos navegadores do Modo Jogo.</summary>
-    public CleanupReport CleanNow()
-    {
-        bool sim = _settings.SimulationMode;
-        var plan = ApplyBrowserRule(BuildPlan(), sim);
-        return new CleanupExecutor(_actions(sim)).Run(plan, CleanupOptions.FromSettings(_settings));
-    }
+    /// <summary>O botão "Limpar agora" da aba Limpeza.</summary>
+    public CleanupReport CleanNow() =>
+        new CleanupExecutor(_actions(_settings.SimulationMode)).Run(BuildPlan(), CleanupOptions.FromSettings(_settings));
 
     /// <summary>
-    /// Modo leve: Edge, Chrome e Opera GX nunca são fechados, só enxugados (1ª aba). Roda antes da limpeza,
-    /// pra standby list já pegar a memória das abas fechadas.
+    /// Chamado a cada 2 s enquanto o Modo Jogo está ativo: com a chave "Limitar os navegadores" ligada, segura cada
+    /// navegador no limite. Desligada, não mexe em navegador nenhum. Em nenhum dos dois casos o navegador é fechado.
     /// </summary>
-    private CleanupPlan ApplyBrowserRule(CleanupPlan plan, bool sim)
-    {
-        if (!_settings.EdgeLite) return plan;
-        bool trimmed = false;
-        foreach (var b in Browsers.Lite.Where(b => plan.Groups.Any(g => g.AppId == b.AppId)))
-        {
-            plan = plan with { Groups = plan.Groups.Select(g => g.AppId == b.AppId ? g with { WillClose = false } : g).ToList() };
-            if (sim) AppLog.Info($"[SIMULAÇÃO] {b.Name} leve: fecharia as abas e janelas extras, mantendo só a 1ª aba");
-            else { EdgeTabs.KeepFirstTab(b); trimmed = true; }
-        }
-        if (trimmed) Thread.Sleep(500);
-        return plan;
-    }
-
-    /// <summary>Chamado a cada 2 s enquanto o Modo Jogo está ativo: segura cada navegador no limite.</summary>
     public IReadOnlyList<GuardDecision> EnforceBrowserLimits()
     {
         if (!_settings.EdgeLite || !GameMode.IsActive) return Array.Empty<GuardDecision>();
@@ -95,7 +75,7 @@ public sealed class BoostService
         var sys = _actions(_settings.SimulationMode);
         // Fonte de teste só quando foi passada no construtor; no app, cada navegador lê só os próprios processos
         var source = _processes is ProcessScanner ? null : _processes;
-        return Browsers.Lite.Select(b => EdgeMemoryGuard.Enforce(limit, sys, source, b)).ToList();
+        return Browsers.Limited.Select(b => EdgeMemoryGuard.Enforce(limit, sys, source, b)).ToList();
     }
 
     public GameModeResult Exit() => _settings.SimulationMode && !GameMode.IsActive
