@@ -2,6 +2,21 @@
 
 As mudanças de cada versão do Sunset Boost. O workflow de release usa a seção da versão como notas da página de download.
 
+## [0.2.0] - Beta
+
+### Novo
+- **Verificador de hardware** (aba Diagnóstico): procura configurações do PC que roubam desempenho e explica como corrigir. Só lê, não altera nada.
+  - Monitor abaixo do Hz máximo, RAM sem XMP/EXPO, com um pente só ou com pentes diferentes.
+  - Driver de vídeo com mais de 6 meses, PC com duas placas, notebook na bateria, disco do Windows cheio.
+  - "Otimizações para jogos em janela" desligada e aceleração do mouse ligada.
+  - Limite de FPS sugerido pelo Hz da tela e dicas de driver conforme a marca da placa.
+- **Placa de vídeo dedicada por jogo** (aba Perfis): marca o jogo como "Alto desempenho" na configuração do próprio Windows. Valorant, LoL e Fortnite são encontrados sozinhos; o botão **+ JOGO** adiciona outros.
+- Comando `sunsetboost-cli diagnostico`.
+
+### Mudou
+- Jogo e anti-cheat mostram a RAM como "—": o app não abre esses processos nem pra medir.
+- Ícone do Atalho alinhado com os outros cards.
+
 ## [0.1.0] - Beta
 
 Primeira versão pública.
