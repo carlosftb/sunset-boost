@@ -384,16 +384,44 @@ public partial class MainWindow : Window
     {
         bool? gpuOn = null;
         try { gpuOn = GpuPreferences.IsOn(_gpu, GpuTargets.Select(t => t.ExePath)); } catch { }
-        IEnumerable<DiagItem> items = DiagnosticsService.Run(gpuPreferenceOn: gpuOn);
+        IEnumerable<DiagItem> items = DiagnosticsService.Run(gpuPreferenceOn: gpuOn, settings: _settings);
 #if DEBUG
         if (App.Capture is not null) items = DemoData.Diagnostics();
 #endif
         DiagItems.ItemsSource = items.Select(d => d.Status switch
         {
-            DiagStatus.Ok => new DiagVm("✓", Res("Mint"), d.Title, d.Detail),
-            DiagStatus.Recommend => new DiagVm("!", Res("Gold"), d.Title, d.Detail),
-            _ => new DiagVm("i", Res("Cyan"), d.Title, d.Detail),
+            DiagStatus.Ok => new DiagVm("✓", Res("Mint"), d.Title, d.Detail, d.Action?.Id, d.Action?.Label),
+            DiagStatus.Recommend => new DiagVm("!", Res("Gold"), d.Title, d.Detail, d.Action?.Id, d.Action?.Label),
+            _ => new DiagVm("i", Res("Cyan"), d.Title, d.Detail, d.Action?.Id, d.Action?.Label),
         }).ToList();
+    }
+
+    /// <summary>Botão de um item do Diagnóstico (hoje só o Startup boost do Edge).</summary>
+    private void DiagAction_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not string id) return;
+        var edge = new EdgeStartupBoost(_settings);
+        EdgeBoostResult result;
+        switch (id)
+        {
+            case EdgeStartupBoost.ActionTurnOff:
+                if (MessageBox.Show("Desligar o Startup boost do Edge? Assim o Edge não fica carregado na memória depois de fechado.\n\n" +
+                        EdgeStartupBoost.ManagedNote + "\n\nPra desfazer, é só clicar em VOLTAR AO PADRÃO aqui no Diagnóstico.",
+                        "Sunset Boost", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+                result = edge.TurnOff();
+                break;
+            case EdgeStartupBoost.ActionRestore:
+                if (MessageBox.Show("Voltar o Startup boost do Edge ao padrão? A política sai, o aviso \"Gerenciado pela sua organização\" some " +
+                        "e a opção volta a valer nas configurações do Edge (na próxima vez que ele abrir).",
+                        "Sunset Boost", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+                result = edge.Restore();
+                break;
+            default:
+                return;
+        }
+        if (result.Ok && !_settings.SimulationMode) App.SaveSettings();
+        Status(result.Message);
+        RefreshDiagnostics();
     }
 
     private void RefreshHeader()

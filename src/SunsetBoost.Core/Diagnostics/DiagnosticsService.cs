@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using SunsetBoost.Core.Edge;
 using SunsetBoost.Core.Infrastructure;
 using SunsetBoost.Core.Tweaks;
 
@@ -6,7 +7,10 @@ namespace SunsetBoost.Core.Diagnostics;
 
 public enum DiagStatus { Ok, Recommend, Info }
 
-public sealed record DiagItem(DiagStatus Status, string Title, string Detail);
+/// <summary>Botão opcional de um item (Id diz à tela o que fazer, Label é o texto do botão).</summary>
+public sealed record DiagAction(string Id, string Label);
+
+public sealed record DiagItem(DiagStatus Status, string Title, string Detail, DiagAction? Action = null);
 
 /// <summary>Recomendações que valem pra sempre (não são revertidas pelo Modo Jogo).</summary>
 public static class DiagnosticsService
@@ -20,7 +24,8 @@ public static class DiagnosticsService
 
     /// <param name="hardware">null = lê o PC de verdade.</param>
     /// <param name="gpuPreferenceOn">Se "Placa de vídeo dedicada nos jogos" está ligada (null = não sei).</param>
-    public static IReadOnlyList<DiagItem> Run(IPowerPlans? power = null, IHardwareInfo? hardware = null, bool? gpuPreferenceOn = null)
+    public static IReadOnlyList<DiagItem> Run(IPowerPlans? power = null, IHardwareInfo? hardware = null, bool? gpuPreferenceOn = null,
+        AppSettings? settings = null, IMachineRegistry? edgeRegistry = null)
     {
         // Primeiro o hardware: é onde estão os ganhos grandes (Hz do monitor, XMP, dual channel, placa certa)
         var hw = hardware ?? new RealHardwareInfo();
@@ -30,12 +35,8 @@ public static class DiagnosticsService
             items.Add(new(DiagStatus.Recommend, "Abra o Sunset Boost como administrador",
                 "Sem admin, ele não consegue pausar serviços, limpar a standby list nem fechar apps elevados."));
 
-        // Edge Startup boost (política de máquina, se existir)
-        var boost = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Edge")?.GetValue("StartupBoostEnabled");
-        items.Add(boost is 0
-            ? new(DiagStatus.Ok, "Startup boost do Edge desligado", "O Edge não fica carregado na memória à toa.")
-            : new(DiagStatus.Recommend, "Desligar o \"Startup boost\" do Edge",
-                "É ele que mantém o Edge na memória mesmo fechado. No Edge: Configurações › Sistema e desempenho › Aumento de inicialização."));
+        // Edge Startup boost (política de máquina). Com admin, o próprio app desliga e volta ao padrão.
+        items.Add(new EdgeStartupBoost(settings ?? new AppSettings(), edgeRegistry).Diagnose(Elevation.IsElevated));
 
         // Apps pesados abrindo com o Windows
         var startup = ReadRunKey(Registry.CurrentUser) .Concat(ReadRunKey(Registry.LocalMachine)).ToList();

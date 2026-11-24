@@ -4,6 +4,9 @@ As mudanças de cada versão do Sunset Boost. O workflow de release usa a seçã
 
 ## [Não lançado]
 
+### Novo
+- **Startup boost do Edge com um clique** (aba Diagnóstico, com admin): o botão **DESLIGAR** grava a política oficial do Edge (`StartupBoostEnabled = 0`) e **VOLTAR AO PADRÃO** desfaz, sem mexer nas outras políticas do Edge. Por ser política, o Edge mostra "Gerenciado pela sua organização" e trava a opção até voltar ao padrão. Vale na próxima vez que o Edge abrir.
+
 ### Mudou
 - **Navegadores não são mais fechados.** A chave "Fechar os navegadores" virou **Limitar os navegadores a 2 GB**:
   - Desligada (padrão): o app não mexe nos navegadores.
