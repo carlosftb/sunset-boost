@@ -11,6 +11,9 @@ namespace SunsetBoost.Core.Updates;
 /// <summary>Uma versão publicada no GitHub, mais nova que a instalada.</summary>
 public sealed record UpdateInfo(Version Version, string Tag, string InstallerName, long InstallerSize, Uri InstallerUrl, Uri ShaUrl, Uri PageUrl, string Notes);
 
+/// <summary>Instalador baixado e o SHA-256 que ele tinha quando foi conferido (pra conferir de novo antes de abrir).</summary>
+public sealed record DownloadedInstaller(string Path, string Sha256);
+
 /// <summary>
 /// Procura e baixa atualizações nas Releases do GitHub. Cuidados, porque o app roda com admin:
 /// <list type="bullet">
@@ -33,6 +36,12 @@ public static class Updater
 
     internal const long MaxApiBytes = 2 * 1024 * 1024;
     internal const long MaxInstallerBytes = 300L * 1024 * 1024;
+
+    /// <summary>
+    /// Tempo máximo sem chegar nenhum byte. O HttpClient.Timeout só vale até os cabeçalhos (ResponseHeadersRead):
+    /// sem isto, uma conexão travada no meio deixaria o download (e o botão) parado pra sempre.
+    /// </summary>
+    internal static TimeSpan StallTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
     private static readonly Regex TagRx = new(@"^v(\d+)\.(\d+)\.(\d+)$");
     private static readonly Regex ShaRx = new(@"^\s*([0-9a-fA-F]{64})\b");
@@ -115,9 +124,9 @@ public static class Updater
 
     /// <summary>
     /// Baixa o instalador pra <paramref name="folder"/> (com admin, uma pasta que só admin altera) e confere o SHA-256.
-    /// Devolve o caminho do instalador conferido. Qualquer diferença apaga o arquivo e lança exceção.
+    /// Devolve o instalador conferido e o SHA-256 dele. Qualquer diferença apaga o arquivo e lança exceção.
     /// </summary>
-    public static async Task<string> DownloadAsync(HttpClient http, UpdateInfo info, string folder, IProgress<double>? progress = null, CancellationToken ct = default)
+    public static async Task<DownloadedInstaller> DownloadAsync(HttpClient http, UpdateInfo info, string folder, IProgress<double>? progress = null, CancellationToken ct = default)
     {
         Directory.CreateDirectory(folder);
         // Restos de downloads anteriores saem antes (a pasta é só nossa)
@@ -150,7 +159,7 @@ public static class Updater
                     var buf = new byte[81920];
                     long total = 0;
                     int n;
-                    while ((n = await src.ReadAsync(buf, ct)) > 0)
+                    while ((n = await ReadWithStallTimeoutAsync(src, buf, ct)) > 0)
                     {
                         total += n;
                         if (total > info.InstallerSize) throw new InvalidDataException("o download passou do tamanho anunciado");
@@ -169,7 +178,7 @@ public static class Updater
             // Confere de novo o arquivo final: é ele que o Windows vai abrir
             if (!HashFile(target).Equals(expected, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidDataException("o instalador mudou depois de baixado");
-            return target;
+            return new DownloadedInstaller(target, expected);
         }
         catch
         {
@@ -184,6 +193,18 @@ public static class Updater
     {
         var m = ShaRx.Match(content ?? "");
         return m.Success ? m.Groups[1].Value.ToUpperInvariant() : null;
+    }
+
+    /// <summary>Lê um pedaço; se nada chegar em <see cref="StallTimeout"/>, desiste (o download travou).</summary>
+    private static async Task<int> ReadWithStallTimeoutAsync(Stream src, byte[] buf, CancellationToken ct)
+    {
+        using var stall = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        stall.CancelAfter(StallTimeout);
+        try { return await src.ReadAsync(buf, stall.Token); }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            throw new TimeoutException($"o download parou: nada chegou em {StallTimeout.TotalSeconds:0} s");
+        }
     }
 
     internal static string HashFile(string path)
@@ -206,7 +227,7 @@ public static class Updater
         using var ms = new MemoryStream();
         var buf = new byte[16384];
         int n;
-        while ((n = await s.ReadAsync(buf, ct)) > 0)
+        while ((n = await ReadWithStallTimeoutAsync(s, buf, ct)) > 0)
         {
             if (ms.Length + n > max) throw new InvalidDataException("resposta grande demais");
             ms.Write(buf, 0, n);
@@ -223,14 +244,28 @@ public static class Updater
 /// <summary>Abre o instalador baixado.</summary>
 public static class InstallerLauncher
 {
-    /// <summary>
-    /// Pede pro Explorer (que roda sem admin) abrir o instalador: ele começa sem admin e o próprio Windows mostra o UAC.
-    /// Assim o app com admin nunca executa um download direto, e o usuário vê e confirma cada atualização.
-    /// </summary>
-    public static void Start(string installerPath)
+    /// <summary>Quem de fato abre o arquivo (nos testes, um falso que só anota).</summary>
+    internal static Action<string> Open { get; set; } = path =>
     {
-        if (!File.Exists(installerPath)) throw new FileNotFoundException("instalador não encontrado", installerPath);
         var explorer = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(explorer, $"\"{installerPath}\"") { UseShellExecute = false });
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(explorer, $"\"{path}\"") { UseShellExecute = false });
+    };
+
+    /// <summary>
+    /// Confere o SHA-256 de novo (o clique em INSTALAR pode vir muito depois do download) e pede pro Explorer, que roda
+    /// sem admin, abrir o instalador: ele começa sem admin e o próprio Windows mostra o UAC. Assim o app com admin nunca
+    /// executa um download direto, e o usuário vê e confirma cada atualização.
+    /// Só chame com o instalador numa pasta que só admin altera (AppPaths.IsProtected): numa pasta do usuário, outro
+    /// programa poderia trocar o arquivo entre esta conferência e o Windows abrir.
+    /// </summary>
+    public static void Start(DownloadedInstaller installer)
+    {
+        if (!File.Exists(installer.Path)) throw new FileNotFoundException("instalador não encontrado", installer.Path);
+        if (!Updater.HashFile(installer.Path).Equals(installer.Sha256, StringComparison.OrdinalIgnoreCase))
+        {
+            try { File.Delete(installer.Path); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            throw new InvalidDataException("o instalador mudou depois de baixado e foi apagado; baixe de novo");
+        }
+        Open(installer.Path);
     }
 }

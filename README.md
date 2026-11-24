@@ -85,6 +85,8 @@ Fechar a janela deixa o app no ícone perto do relógio. Pra sair de vez: botão
 - **Não mexe no jogo**: o app nem abre acesso aos processos de jogos e anti-cheats, nem pra medir memória. Não injeta nada, não lê memória de jogo e não muda arquivos do jogo.
 - **Tudo é reversível**: cada ajuste do Modo Jogo é salvo antes e restaurado depois. Se o PC desligar no meio, o app oferece restaurar quando abrir de novo.
 - **Pede pra fechar antes de forçar**: apps com janela ganham alguns segundos pra salvar e fechar sozinhos.
+- **Só fala com a internet pra procurar atualização**: ao abrir, ele pergunta ao GitHub se tem versão nova. Vai só o pedido, com o seu IP e a versão do app; nada do seu PC. Dá pra desligar em **Diagnóstico** › **Procurar ao abrir**.
+- **Atualização conferida**: o app só baixa e instala sozinho quando está aberto como administrador, e confere o SHA-256 do instalador no download e de novo antes de abrir. Sem admin, o botão abre a página da versão nova.
 - **Código aberto pra leitura**: dá pra conferir tudo o que ele faz neste repositório.
 
 Detalhes técnicos em [docs/DESENVOLVIMENTO.md](docs/DESENVOLVIMENTO.md#segurança). Achou uma falha de segurança? Veja o [SECURITY.md](SECURITY.md).

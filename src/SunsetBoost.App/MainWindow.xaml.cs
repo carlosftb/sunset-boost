@@ -646,8 +646,15 @@ public partial class MainWindow : Window
 
     private static readonly Lazy<System.Net.Http.HttpClient> Http = new(() => Updater.CreateClient());
     private UpdateInfo? _update;
-    private string? _installer;
+    private DownloadedInstaller? _installer;
     private bool _updateBusy;
+
+    /// <summary>
+    /// Só baixa e instala com o app em admin: aí o download fica na pasta updates dentro do %ProgramData%, que só admin altera.
+    /// Sem admin a pasta é a do usuário, e qualquer programa sem admin trocaria o instalador antes do UAC. Então sem admin
+    /// o botão só abre a página da versão no navegador.
+    /// </summary>
+    private static bool CanInstallUpdates => App.Paths.IsProtected;
 
 
     private void RefreshUpdateUi()
@@ -660,6 +667,11 @@ public partial class MainWindow : Window
         {
             UpdateButton.Content = $"INSTALAR v{Updater.Display(_update.Version)}";
             UpdateText.Text = $"Instalada: v{cur} · v{Updater.Display(_update.Version)} baixada e conferida";
+        }
+        else if (_update is not null && !CanInstallUpdates)
+        {
+            UpdateButton.Content = $"ABRIR PÁGINA DA v{Updater.Display(_update.Version)}";
+            UpdateText.Text = $"Instalada: v{cur} · versão nova: v{Updater.Display(_update.Version)} · sem admin, baixe pela página";
         }
         else if (_update is not null)
         {
@@ -714,6 +726,7 @@ public partial class MainWindow : Window
     {
         if (_updateBusy) return;
         if (_update is null) { await CheckForUpdateAsync(quiet: false); return; }
+        if (!CanInstallUpdates) { OpenReleasePage(_update); return; }
         if (_installer is null) { await DownloadUpdateAsync(); if (_installer is null) return; }
         InstallUpdate();
     }
@@ -749,6 +762,21 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OpenReleasePage(UpdateInfo u)
+    {
+        try
+        {
+            // Endereço montado pelo app (github.com/carlosftb/sunset-boost/releases/tag/vX.Y.Z), não vem da resposta
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(u.PageUrl.ToString()) { UseShellExecute = true });
+            Status($"Página da v{Updater.Display(u.Version)} aberta no navegador. Sem admin, o app não baixa nem instala sozinho.");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn($"Atualizações: não deu pra abrir a página: {ex.Message}");
+            Status($"Não deu pra abrir o navegador. A versão nova está em {u.PageUrl}");
+        }
+    }
+
     private void InstallUpdate()
     {
         if (_boost.GameMode.IsActive)
@@ -771,6 +799,7 @@ public partial class MainWindow : Window
         {
             AppLog.Warn($"Atualizações: não deu pra abrir o instalador: {ex.Message}");
             Status("Não deu pra abrir o instalador: " + ex.Message);
+            if (ex is InvalidDataException) { _installer = null; RefreshUpdateUi(); } // arquivo apagado: volta pra BAIXAR
         }
     }
 

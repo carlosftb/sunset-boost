@@ -73,7 +73,7 @@ if (command == "atualizacao")
     Console.WriteLine($"Nova: {info.Tag} · {info.InstallerName} · {info.InstallerSize} bytes\n  {info.InstallerUrl}\n  {info.PageUrl}");
     if (Opt("--baixar-para") is { Length: > 0 } dir)
     {
-        var path = await SunsetBoost.Core.Updates.Updater.DownloadAsync(http, info, dir);
+        var path = (await SunsetBoost.Core.Updates.Updater.DownloadAsync(http, info, dir)).Path;
         Console.WriteLine($"Baixado e conferido (SHA-256 da release): {path}");
     }
     return 0;

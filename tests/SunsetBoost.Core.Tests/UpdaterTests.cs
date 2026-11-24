@@ -12,6 +12,8 @@ internal sealed class FakeGitHub : HttpMessageHandler
 {
     public Dictionary<string, (byte[] Body, string? FinalUrl)> Routes { get; } = new();
     public List<string> Requests { get; } = new();
+    /// <summary>URLs que mandam os cabeçalhos e depois travam (nunca chega um byte do corpo).</summary>
+    public HashSet<string> Stalled { get; } = new();
 
     public void Add(string url, byte[] body, string? finalUrl = null) => Routes[url] = (body, finalUrl);
     public void Add(string url, string body) => Add(url, Encoding.UTF8.GetBytes(body));
@@ -22,7 +24,28 @@ internal sealed class FakeGitHub : HttpMessageHandler
         Requests.Add(url);
         if (!Routes.TryGetValue(url, out var r)) return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound) { RequestMessage = request });
         var final = r.FinalUrl is null ? request : new HttpRequestMessage(HttpMethod.Get, r.FinalUrl);
-        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(r.Body), RequestMessage = final });
+        HttpContent content = Stalled.Contains(url) ? new StreamContent(new StalledStream()) : new ByteArrayContent(r.Body);
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = content, RequestMessage = final });
+    }
+
+    private sealed class StalledStream : Stream
+    {
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
+        {
+            await Task.Delay(Timeout.Infinite, ct);
+            return 0;
+        }
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken ct) => ReadAsync(buffer.AsMemory(offset, count), ct).AsTask();
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => 0; set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 }
 
@@ -109,9 +132,10 @@ public class UpdaterTests : IDisposable
     public async Task Baixa_e_confere_o_instalador()
     {
         var (gh, info, installer) = Setup();
-        var path = await Updater.DownloadAsync(Updater.CreateClient(gh), info, _dir);
-        Assert.Equal(installer, await File.ReadAllBytesAsync(path));
-        Assert.Equal("SunsetBoost-Setup-0.2.0.exe", Path.GetFileName(path));
+        var d = await Updater.DownloadAsync(Updater.CreateClient(gh), info, _dir);
+        Assert.Equal(installer, await File.ReadAllBytesAsync(d.Path));
+        Assert.Equal("SunsetBoost-Setup-0.2.0.exe", Path.GetFileName(d.Path));
+        Assert.Equal(Convert.ToHexString(SHA256.HashData(installer)), d.Sha256, ignoreCase: true);
         Assert.DoesNotContain(gh.Requests, r => r.Contains("evil"));
     }
 
@@ -149,6 +173,50 @@ public class UpdaterTests : IDisposable
         var (gh, info, _) = Setup();
         await Updater.DownloadAsync(Updater.CreateClient(gh), info, _dir);
         Assert.Equal(new[] { "SunsetBoost-Setup-0.2.0.exe" }, Directory.GetFiles(_dir).Select(Path.GetFileName));
+    }
+
+    [Fact]
+    public async Task Instalar_confere_o_SHA_de_novo_e_abre_o_arquivo_certo()
+    {
+        var (gh, info, _) = Setup();
+        var d = await Updater.DownloadAsync(Updater.CreateClient(gh), info, _dir);
+        var opened = new List<string>();
+        var original = InstallerLauncher.Open;
+        InstallerLauncher.Open = opened.Add;
+        try { InstallerLauncher.Start(d); }
+        finally { InstallerLauncher.Open = original; }
+        Assert.Equal(new[] { d.Path }, opened);
+    }
+
+    [Fact]
+    public async Task Instalador_trocado_depois_do_download_nao_abre_e_e_apagado()
+    {
+        var (gh, info, _) = Setup();
+        var d = await Updater.DownloadAsync(Updater.CreateClient(gh), info, _dir);
+        await File.WriteAllTextAsync(d.Path, "outro programa"); // trocado entre o download e o clique em INSTALAR
+        var opened = new List<string>();
+        var original = InstallerLauncher.Open;
+        InstallerLauncher.Open = opened.Add;
+        try { Assert.Throws<InvalidDataException>(() => InstallerLauncher.Start(d)); }
+        finally { InstallerLauncher.Open = original; }
+        Assert.Empty(opened);
+        Assert.False(File.Exists(d.Path));
+    }
+
+    [Fact]
+    public async Task Download_travado_desiste_e_apaga_o_pedaco()
+    {
+        var (gh, info, _) = Setup();
+        gh.Stalled.Add($"{Dl}/v0.2.0/SunsetBoost-Setup-0.2.0.exe");
+        var original = Updater.StallTimeout;
+        Updater.StallTimeout = TimeSpan.FromMilliseconds(300);
+        try
+        {
+            var ex = await Assert.ThrowsAsync<TimeoutException>(() => Updater.DownloadAsync(Updater.CreateClient(gh), info, _dir));
+            Assert.Contains("parou", ex.Message);
+        }
+        finally { Updater.StallTimeout = original; }
+        Assert.Empty(Directory.GetFiles(_dir));
     }
 
     [Fact]
