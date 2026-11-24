@@ -45,6 +45,9 @@ public sealed class AppSettings
 
     /// <summary>Jogos que o usuário adicionou à placa de vídeo dedicada (caminho completo do .exe), além dos achados sozinhos.</summary>
     public List<string> GpuGames { get; set; } = new();
+
+    /// <summary>Procurar versão nova no GitHub ao abrir o app.</summary>
+    public bool CheckUpdates { get; set; } = true;
 }
 
 /// <summary>Lê e grava o settings.json com escrita atômica (nunca deixa o arquivo pela metade).</summary>

@@ -73,7 +73,7 @@
                 <StackPanel.RenderTransform><SkewTransform AngleX="-6" /></StackPanel.RenderTransform>
                 <TextBlock Text="SUNSET BOOST" FontFamily="{StaticResource TitleFont}" FontStyle="Italic" FontSize="32"
                            Foreground="{StaticResource LogoBrush}" Effect="{StaticResource PinkGlow}" Padding="0,0,8,0" />
-                <TextBlock Text="V I C E   M O D E  ·  v 0 . 1" FontFamily="{StaticResource LabelFont}" FontSize="11" Foreground="#FFD9EC" />
+                <TextBlock x:Name="VersionLabel" Text="V I C E   M O D E  ·  v 0 . 1" FontFamily="{StaticResource LabelFont}" FontSize="11" Foreground="#FFD9EC" />
             </StackPanel>
             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                 <RadioButton x:Name="TabHome" Style="{StaticResource TabButton}" Content="INÍCIO" IsChecked="True" Checked="Tab_Checked" Tag="home" />
@@ -87,6 +87,9 @@
                     <TextBlock x:Name="ProfilePill" Text="PERFIL · VALORANT" FontFamily="{StaticResource LabelFont}" FontSize="15" Foreground="{StaticResource Cyan}" />
                 </c:CutBorder>
                 <TextBlock x:Name="ModeLabel" HorizontalAlignment="Right" Margin="0,4,2,0" FontFamily="{StaticResource LabelFont}" FontSize="12" Foreground="{StaticResource Gold}" />
+                <!-- Só aparece quando tem versão nova no GitHub -->
+                <Button x:Name="UpdatePill" Style="{StaticResource GhostButton}" Visibility="Collapsed" HorizontalAlignment="Right" Margin="0,4,0,0"
+                        FontSize="13" Padding="10,2" Click="UpdateAction_Click" AutomationProperties.Name="Atualização disponível" />
             </StackPanel>
         </DockPanel>
 
@@ -379,10 +382,24 @@
 
             <!-- ===== DIAGNÓSTICO ===== -->
             <DockPanel x:Name="ScreenDiag" Visibility="Collapsed">
-                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
-                    <TextBlock Style="{StaticResource H}" Text="DIAGNÓSTICO" />
-                    <TextBlock Style="{StaticResource Big}" FontSize="26" Text="AJUSTES QUE VALEM PRA SEMPRE" />
-                </StackPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,12,12">
+                    <!-- Atualizações: versão instalada, procurar ao abrir e o botão (verificar → baixar e instalar) -->
+                    <c:CutBorder Style="{StaticResource PanelBox}" DockPanel.Dock="Right" Padding="14,6" VerticalAlignment="Bottom">
+                        <DockPanel>
+                            <Button x:Name="UpdateButton" Style="{StaticResource GhostButton}" Content="VERIFICAR ATUALIZAÇÕES" FontSize="14" Padding="12,3"
+                                    Click="UpdateAction_Click" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0" />
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock x:Name="UpdateText" Style="{StaticResource Small}" Foreground="{StaticResource White}" />
+                                <CheckBox x:Name="UpdateAutoCheck" Content="Procurar ao abrir" Foreground="#C3B0E3" FontSize="11" Margin="0,2,0,0"
+                                          Click="UpdateAutoCheck_Click" ToolTip="Ao abrir, o app pergunta ao GitHub se tem versão nova. Nada do seu PC é enviado." />
+                            </StackPanel>
+                        </DockPanel>
+                    </c:CutBorder>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource H}" Text="DIAGNÓSTICO" />
+                        <TextBlock Style="{StaticResource Big}" FontSize="26" Text="AJUSTES QUE VALEM PRA SEMPRE" />
+                    </StackPanel>
+                </DockPanel>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <ItemsControl x:Name="DiagItems">
                         <ItemsControl.ItemTemplate>

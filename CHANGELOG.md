@@ -2,6 +2,14 @@
 
 As mudanças de cada versão do Sunset Boost. O workflow de release usa a seção da versão como notas da página de download.
 
+## [Não lançado]
+
+### Novo
+- **Atualizações pelo app**: ao abrir (dá pra desligar) e pelo botão **Verificar atualizações** na aba Diagnóstico, o app procura versão nova no GitHub. Achou: um clique baixa, confere o SHA-256 e abre o instalador, e o Windows pede a sua permissão.
+  - Só baixa do repositório oficial, por HTTPS, e recusa arquivo com SHA-256 ou tamanho diferente da release.
+  - Não atualiza com o Modo Jogo ativo.
+- Comando `sunsetboost-cli atualizacao`.
+
 ## [0.2.0] - Beta
 
 ### Novo
