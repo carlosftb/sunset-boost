@@ -2,7 +2,9 @@
 
 As mudanças de cada versão do Sunset Boost. O workflow de release usa a seção da versão como notas da página de download.
 
-## [Não lançado]
+## [0.3.0] - Beta
+
+> Vindo da 0.1.0 ou da 0.2.0? Baixe e instale esta versão por cima, uma vez. Daqui pra frente o próprio app avisa quando sair versão nova.
 
 ### Novo
 - **Atualizações pelo app**: ao abrir (dá pra desligar) e pelo botão **Verificar atualizações** na aba Diagnóstico, o app procura versão nova no GitHub. Achou: um clique baixa, confere o SHA-256 e abre o instalador, e o Windows pede a sua permissão.
