@@ -9,10 +9,10 @@ public class CleanupPlannerTests
     private static AppGroup Group(CleanupPlan plan, string id) => plan.Groups.Single(g => g.AppId == id);
 
     [Fact]
-    public void Edge_com_varios_processos_vira_um_app_que_fecha_por_padrao()
+    public void App_com_varios_processos_vira_um_app_que_fecha_por_padrao()
     {
-        var snap = new[] { P(10, "msedge", mb: 500), P(11, "msedge", parent: 10, mb: 300), P(12, "msedge", parent: 10, mb: 200) };
-        var g = Group(CleanupPlanner.Build(snap, Ctx()), "edge");
+        var snap = new[] { P(10, "onedrive", mb: 500), P(11, "onedrive", parent: 10, mb: 300), P(12, "onedrive", parent: 10, mb: 200) };
+        var g = Group(CleanupPlanner.Build(snap, Ctx()), "onedrive");
         Assert.Equal(CleanupList.CloseByDefault, g.List);
         Assert.True(g.WillClose);
         Assert.Equal(3, g.Processes.Count);
@@ -49,11 +49,25 @@ public class CleanupPlannerTests
         Assert.True(Group(CleanupPlanner.Build(snap, Ctx(), decisions), "discord").WillClose);
     }
 
+    [Theory]
+    [InlineData("msedge", "edge")] [InlineData("chrome", "chrome")] [InlineData("opera", "opera")]
+    [InlineData("firefox", "firefox")] [InlineData("brave", "brave")] [InlineData("vivaldi", "vivaldi")]
+    public void Navegador_fica_aberto_ate_o_usuario_escolher_fechar(string process, string id)
+    {
+        var snap = new[] { P(10, process) };
+        var g = Group(CleanupPlanner.Build(snap, Ctx()), id);
+        Assert.Equal(CleanupList.UserDecides, g.List);
+        Assert.False(g.WillClose);
+
+        var decisions = new Dictionary<string, AppDecision> { [id] = AppDecision.Close };
+        Assert.True(Group(CleanupPlanner.Build(snap, Ctx(), decisions), id).WillClose);
+    }
+
     [Fact]
     public void Usuario_pode_manter_um_app_que_fecharia_por_padrao()
     {
-        var decisions = new Dictionary<string, AppDecision> { ["edge"] = AppDecision.Keep };
-        Assert.False(Group(CleanupPlanner.Build(new[] { P(10, "msedge") }, Ctx(), decisions), "edge").WillClose);
+        var decisions = new Dictionary<string, AppDecision> { ["onedrive"] = AppDecision.Keep };
+        Assert.False(Group(CleanupPlanner.Build(new[] { P(10, "onedrive") }, Ctx(), decisions), "onedrive").WillClose);
     }
 
     [Fact]
@@ -101,7 +115,7 @@ public class CleanupPlannerTests
     [Fact]
     public void Estimativa_soma_so_o_que_vai_fechar()
     {
-        var snap = new[] { P(10, "msedge", mb: 1000), P(20, "discord", mb: 400), P(30, "vgtray", mb: 50) };
+        var snap = new[] { P(10, "onedrive", mb: 1000), P(20, "discord", mb: 400), P(30, "vgtray", mb: 50) };
         Assert.Equal(1000 * MB, CleanupPlanner.Build(snap, Ctx()).EstimatedFreedBytes);
     }
 }

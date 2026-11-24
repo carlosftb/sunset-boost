@@ -12,7 +12,7 @@ public class CleanupExecutorTests
     [Fact]
     public void Pede_pra_fechar_primeiro_e_so_forca_quem_nao_fechou()
     {
-        var snap = new[] { P(10, "msedge"), P(11, "msedge", parent: 10), P(20, "steam") };
+        var snap = new[] { P(10, "onedrive"), P(11, "onedrive", parent: 10), P(20, "steam") };
         var sys = new FakeSystemActions();
         sys.Stubborn.Add(20); // Steam ignora o pedido e vai pra bandeja
 
@@ -20,8 +20,8 @@ public class CleanupExecutorTests
 
         Assert.Equal(new[] { 10, 11, 20 }, sys.CloseRequested.OrderBy(x => x));
         Assert.Equal(new[] { 20 }, sys.Killed);
-        var edge = report.Groups.Single(r => r.Group.AppId == "edge");
-        Assert.Equal(2, edge.ClosedGracefully);
+        var onedrive = report.Groups.Single(r => r.Group.AppId == "onedrive");
+        Assert.Equal(2, onedrive.ClosedGracefully);
         Assert.Equal(1, report.Groups.Single(r => r.Group.AppId == "steam").Killed);
         Assert.Equal(1, sys.Purges);
     }
@@ -34,12 +34,13 @@ public class CleanupExecutorTests
     [Fact]
     public void App_sem_janela_e_forcado_na_hora_sem_esperar()
     {
-        // Edge em segundo plano (Startup boost): 8 processos, nenhuma janela — como no log real
+        // Edge em segundo plano (Startup boost): 8 processos, nenhuma janela — como no log real (marcado pra fechar)
         var snap = Enumerable.Range(10, 8).Select(pid => P(pid, "msedge")).ToArray();
         var sys = new FakeSystemActions();
         sys.NoWindow.UnionWith(snap.Select(p => p.Pid));
+        var plan = CleanupPlanner.Build(snap, Ctx(), new Dictionary<string, AppDecision> { ["edge"] = AppDecision.Close });
 
-        var elapsed = Time(() => new CleanupExecutor(sys).Run(CleanupPlanner.Build(snap, Ctx()), Real));
+        var elapsed = Time(() => new CleanupExecutor(sys).Run(plan, Real));
 
         Assert.Equal(8, sys.Killed.Count);
         Assert.True(elapsed < TimeSpan.FromSeconds(0.5), $"demorou {elapsed.TotalSeconds:0.00}s");
@@ -64,7 +65,7 @@ public class CleanupExecutorTests
     [Fact]
     public void App_com_janela_que_fecha_sozinho_nao_e_forcado()
     {
-        var snap = new[] { P(10, "msedge"), P(11, "msedge", parent: 10) };
+        var snap = new[] { P(10, "onedrive"), P(11, "onedrive", parent: 10) };
         var sys = new FakeSystemActions();
         sys.NoWindow.Add(11); // filho sem janela morre junto com o pai
         sys.Stubborn.Clear();
@@ -94,14 +95,14 @@ public class CleanupExecutorTests
     [Fact]
     public void Falha_ao_forcar_vira_erro_no_relatorio_sem_derrubar_o_resto()
     {
-        var snap = new[] { P(10, "msedge"), P(20, "steam") };
+        var snap = new[] { P(10, "onedrive"), P(20, "steam") };
         var sys = new FakeSystemActions();
         sys.Stubborn.UnionWith(new[] { 10, 20 });
         sys.Unkillable.Add(10);
 
         var report = new CleanupExecutor(sys).Run(CleanupPlanner.Build(snap, Ctx()), Fast);
 
-        Assert.Single(report.Groups.Single(r => r.Group.AppId == "edge").Errors);
+        Assert.Single(report.Groups.Single(r => r.Group.AppId == "onedrive").Errors);
         Assert.Contains(20, sys.Killed);
     }
 
@@ -128,13 +129,13 @@ public class CleanupExecutorTests
     [Fact]
     public void Modo_simulacao_nao_toca_em_nada_e_so_registra()
     {
-        var snap = new[] { P(10, "msedge"), P(20, "discord") };
+        var snap = new[] { P(10, "onedrive"), P(20, "discord") };
         var sim = new SimulatedSystemActions();
         var report = new CleanupExecutor(sim).Run(CleanupPlanner.Build(snap, Ctx()), Fast);
 
         Assert.True(report.Simulated);
         Assert.Equal(0, report.MeasuredFreedBytes);
-        Assert.Contains(sim.Journal, j => j.Contains("msedge.exe"));
+        Assert.Contains(sim.Journal, j => j.Contains("onedrive.exe"));
         Assert.DoesNotContain(sim.Journal, j => j.Contains("discord"));
     }
 

@@ -25,9 +25,9 @@ internal static class DemoData
 
         return new CleanupPlan(profile, new List<AppGroup>
         {
-            G("edge", "Microsoft Edge", CleanupList.CloseByDefault, "navegador", true, 420, 310, 260, 180, 140, 90),
             G("steam", "Steam", CleanupList.CloseByDefault, "launcher que não é do jogo atual", true, 160, 120, 90),
             G("onedrive", "OneDrive", CleanupList.CloseByDefault, "sincronização em segundo plano", true, 95),
+            G("edge", "Microsoft Edge", CleanupList.UserDecides, "navegador", false, 420, 310, 260, 180, 140, 90),
             G("discord", "Discord", CleanupList.UserDecides, "comunicação", false, 230, 140, 60),
             G("spotify", "Spotify", CleanupList.UserDecides, "música / mídia", false, 180, 85),
             // Jogo e anti-cheat com 0, como no app de verdade: ele nunca abre esses processos, nem pra medir a RAM ("—")

@@ -2,6 +2,15 @@
 
 As mudanças de cada versão do Sunset Boost. O workflow de release usa a seção da versão como notas da página de download.
 
+## [Não lançado]
+
+### Mudou
+- **Navegadores não são mais fechados.** A chave "Fechar os navegadores" virou **Limitar os navegadores a 2 GB**:
+  - Desligada (padrão): o app não mexe nos navegadores.
+  - Ligada: durante o Modo Jogo, o Edge, o Chrome e o Opera (comum ou GX) ficam em até 2 GB de RAM cada. Passou disso, o app derruba as abas mais pesadas: elas ficam com a página de erro do navegador e voltam ao recarregar. O navegador continua aberto.
+  - As outras abas não são mais fechadas ao entrar no Modo Jogo.
+- Na aba Limpeza, os navegadores passaram pra "Você decide": só fecham se você marcar.
+
 ## [0.3.0] - Beta
 
 > Vindo da 0.1.0 ou da 0.2.0? Baixe e instale esta versão por cima, uma vez. Daqui pra frente o próprio app avisa quando sair versão nova.
