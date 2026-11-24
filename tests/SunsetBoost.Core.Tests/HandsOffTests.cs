@@ -26,6 +26,16 @@ public class HandsOffTests
         Assert.False(plan.Groups.Single().WillClose);
         Assert.Equal(CleanupList.NeverClose, plan.Groups.Single().List);
     }
+
+    [Fact]
+    public void RAM_de_jogo_e_anti_cheat_fica_desconhecida_e_nao_zero()
+    {
+        static AppGroup Group(string name) =>
+            new(name, name, CleanupList.NeverClose, "", new[] { new ProcessInfo(10, 1, name, null, 1, 0, 0) }, false);
+        Assert.True(Group("vgtray").RamUnknown);
+        Assert.True(Group("valorant-win64-shipping").RamUnknown);
+        Assert.False(Group("msmpeng").RamUnknown);
+    }
 }
 
 [Trait("Category", "Integration")]

@@ -36,6 +36,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _autoTimer = new() { Interval = TimeSpan.FromSeconds(2) };
     private readonly AutoBoostController _auto = new();
     private readonly IPriorityStore _priority = new RealPriorityStore();
+    private readonly IGpuPreferenceStore _gpu = new RealGpuPreferenceStore();
     /// <summary>Jogo conhecido aberto agora (só pelo nome). Enquanto tiver, o app fica em silêncio: não lê processos.</summary>
     private GameProfile? _gameOpen;
     private GlobalHotkey? _hotkey;
@@ -78,6 +79,7 @@ public partial class MainWindow : Window
         AutoSwitch.IsChecked = _settings.AutoBoost;
         RefreshStartup();
         RefreshPriority();
+        RefreshGpu();
         if (App.Capture is { } cap) { HotkeyText.Text = $"{_settings.Hotkey} liga e desliga o Modo Jogo de qualquer lugar, até com o jogo aberto."; await CaptureAndExit(cap.Tab, cap.File); return; }
         SetupHotkey();
         _autoTimer.Start();
@@ -215,7 +217,8 @@ public partial class MainWindow : Window
         StatFree.Text = "+" + Fmt.Bytes(_settings.CloseApps ? _plan.EstimatedFreedBytes : 0);
         StatFreeWho.Text = closing.Count == 0 ? "nada pra fechar agora" : string.Join(", ", closing.Take(4).Select(g => g.DisplayName));
 
-        TopApps.ItemsSource = _plan.Groups.Where(g => !BoringReasons.Contains(g.Reason))
+        // Jogo e anti-cheat ficam de fora: o app não abre esses processos, então não sabe quanto eles usam
+        TopApps.ItemsSource = _plan.Groups.Where(g => !BoringReasons.Contains(g.Reason) && !g.RamUnknown)
             .OrderByDescending(g => g.PrivateBytes).Take(4)
             .Select(g => new TopAppVm(g.DisplayName, Fmt.Bytes(g.PrivateBytes), ListLabel(g), RamBrush(g))).ToList();
 
@@ -240,7 +243,10 @@ public partial class MainWindow : Window
         foreach (var g in _plan.Groups.Where(g => g.List == CleanupList.UserDecides && (g.PrivateBytes >= mb5 || g.WillClose)))
             cards.Add(Card(g, Res("Gold")));
         foreach (var g in _plan.Groups.Where(g => g.List == CleanupList.NeverClose && !BoringReasons.Contains(g.Reason)).OrderByDescending(g => g.PrivateBytes).Take(6))
-            cards.Add(new AppCardVm(g.AppId, g.DisplayName, Fmt.Bytes(g.PrivateBytes), g.Reason, Res("Lavender"), true, false, null));
+            cards.Add(new AppCardVm(g.AppId, g.DisplayName, g.RamUnknown ? "—" : Fmt.Bytes(g.PrivateBytes), g.Reason, Res("Lavender"), true, false, null)
+            {
+                RamHint = g.RamUnknown ? "O Sunset Boost nunca abre o processo de jogos e anti-cheats, nem pra medir a RAM." : null,
+            });
 
         Cards.ItemsSource = cards;
 
@@ -372,7 +378,9 @@ public partial class MainWindow : Window
 
     private void RefreshDiagnostics()
     {
-        IEnumerable<DiagItem> items = DiagnosticsService.Run();
+        bool? gpuOn = null;
+        try { gpuOn = GpuPreferences.IsOn(_gpu, GpuTargets.Select(t => t.ExePath)); } catch { }
+        IEnumerable<DiagItem> items = DiagnosticsService.Run(gpuPreferenceOn: gpuOn);
 #if DEBUG
         if (App.Capture is not null) items = DemoData.Diagnostics();
 #endif
@@ -561,6 +569,73 @@ public partial class MainWindow : Window
         AppLog.Info($"Prioridade fixa: {exe} adicionado" + (errors.Count > 0 ? $" | erro: {errors[0]}" : ""));
         Status(errors.Count > 0 ? errors[0] : on ? $"{exe} adicionado: já abre em prioridade alta" : $"{exe} adicionado: ligue a chave pra valer");
         RefreshPriority();
+    }
+
+    // ===================================================================== placa de vídeo dedicada
+
+    /// <summary>Jogos conhecidos achados no PC + os que o usuário adicionou (caminho completo).</summary>
+    private List<(string Name, string ExePath)> GpuTargets =>
+        GameLocator.Find()
+            .Concat(_settings.GpuGames.Where(p => GpuPreferences.IsAllowed(p, out _)).Select(p => (System.IO.Path.GetFileNameWithoutExtension(p), p)))
+            .DistinctBy(t => t.Item2, StringComparer.OrdinalIgnoreCase).ToList();
+
+    private void RefreshGpu()
+    {
+        var targets = GpuTargets;
+        bool on = false;
+        try { on = GpuPreferences.IsOn(_gpu, targets.Select(t => t.ExePath)); } catch (Exception ex) { AppLog.Warn($"Placa de vídeo: não consegui ler o registro: {ex.Message}"); }
+        bool canChange = !_settings.SimulationMode;
+        GpuSwitch.IsChecked = on;
+        GpuSwitch.IsEnabled = canChange && targets.Count > 0;
+        AddGpuGame.IsEnabled = canChange;
+        var games = string.Join(", ", targets.Select(t => t.Name));
+        bool one = targets.Count == 1;
+        GpuText.Text = _settings.SimulationMode ? "Desligue a simulação pra mudar."
+            : targets.Count == 0 ? "Nenhum jogo conhecido achado no PC. Use + JOGO pra escolher o .exe do jogo."
+            : on ? $"Ligada: {games} {(one ? "abre" : "abrem")} sempre na placa dedicada. Fica assim até você desligar."
+            : $"Garante que {games} {(one ? "abra" : "abram")} na placa dedicada, não na integrada. Faz diferença em PC com duas placas (a maioria dos notebooks).";
+    }
+
+    private void GpuSwitch_Click(object sender, RoutedEventArgs e)
+    {
+        bool want = GpuSwitch.IsChecked == true;
+        var paths = GpuTargets.Select(t => t.ExePath).ToList();
+        var errors = want ? GpuPreferences.Apply(_gpu, paths) : GpuPreferences.Remove(_gpu, paths);
+        AppLog.Info($"Placa de vídeo dedicada {(want ? "ligada" : "desligada")}: {string.Join(", ", paths)}" + (errors.Count > 0 ? $" | erros: {string.Join("; ", errors)}" : ""));
+        Status(errors.Count > 0 ? "Placa de vídeo: " + string.Join("; ", errors)
+            : want ? "Placa de vídeo dedicada ligada" + (_gameOpen is not null ? ": vale na próxima vez que o jogo abrir" : "")
+            : "Placa de vídeo dedicada desligada: o Windows volta a decidir");
+        RefreshGpu();
+        RefreshDiagnostics();
+    }
+
+    private void AddGpuGame_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog { Title = "Escolha o .exe do jogo", Filter = "Jogo (*.exe)|*.exe", CheckFileExists = true };
+        if (dlg.ShowDialog(this) != true) return;
+        var path = System.IO.Path.GetFullPath(dlg.FileName);
+        var name = System.IO.Path.GetFileName(path);
+        bool on = GpuSwitch.IsChecked == true;
+
+        if (_settings.GpuGames.Contains(path, StringComparer.OrdinalIgnoreCase))
+        {
+            if (MessageBox.Show($"{name} já está na lista. Tirar ele da placa dedicada?", "Sunset Boost", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+            GpuPreferences.Remove(_gpu, new[] { path });
+            _settings.GpuGames.RemoveAll(g => g.Equals(path, StringComparison.OrdinalIgnoreCase));
+            App.SaveSettings();
+            Status($"{name} saiu da placa dedicada");
+            RefreshGpu();
+            return;
+        }
+        if (GameLocator.Find().Any(t => t.ExePath.Equals(path, StringComparison.OrdinalIgnoreCase))) { Status($"{name} já está na lista"); return; }
+        if (!GpuPreferences.IsAllowed(path, out var why)) { Status($"{name}: {why}"); return; }
+
+        _settings.GpuGames.Add(path);
+        App.SaveSettings();
+        var errors = on ? GpuPreferences.Apply(_gpu, new[] { path }) : new List<string>();
+        AppLog.Info($"Placa de vídeo: {path} adicionado" + (errors.Count > 0 ? $" | erro: {errors[0]}" : ""));
+        Status(errors.Count > 0 ? errors[0] : on ? $"{name} adicionado: já abre na placa dedicada" : $"{name} adicionado: ligue a chave pra valer");
+        RefreshGpu();
     }
 
     /// <summary>A tarefa abre o launcher instalado ao lado (ambiente limpo), nunca este .exe direto.</summary>

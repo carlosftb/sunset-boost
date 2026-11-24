@@ -48,12 +48,25 @@ if (command is "edgeleve" or "navleve")
     return r.Error is null ? 0 : 1;
 }
 
+if (command == "diagnostico")
+{
+    // Só lê: mostra o que o verificador acha deste PC (os mesmos itens da aba DIAGNÓSTICO)
+    var hw = new SunsetBoost.Core.Diagnostics.RealHardwareInfo();
+    foreach (var d in hw.Displays()) Console.WriteLine($"  tela: {d.Name} {d.Width}x{d.Height} {d.CurrentHz} Hz (máx {d.MaxHz})");
+    foreach (var m in hw.Memory()) Console.WriteLine($"  RAM: {m.SizeMB} MB {m.Type} {m.ConfiguredSpeed}/{m.RatedSpeed} MT/s {m.PartNumber}");
+    foreach (var g in hw.Gpus()) Console.WriteLine($"  vídeo: {g.Name} (driver {g.DriverDate:dd/MM/yyyy}, dedicada: {g.IsDedicated})");
+    foreach (var g in SunsetBoost.Core.Tweaks.GameLocator.Find()) Console.WriteLine($"  jogo: {g.Name} → {g.ExePath}");
+    Console.WriteLine();
+    foreach (var item in SunsetBoost.Core.Diagnostics.DiagnosticsService.Run(hardware: hw))
+        Console.WriteLine($"[{item.Status}] {item.Title}{Environment.NewLine}    {item.Detail}");
+    return 0;
+}
 if (command == "modojogo")
     return GameModeCommand(args.Skip(1).FirstOrDefault(a => !a.StartsWith("--"))?.ToLowerInvariant() ?? "status");
 
 if (command is not ("simular" or "limpar"))
 {
-    Console.WriteLine("Comandos: simular | limpar | memoria | modojogo [status|entrar|sair|testar]");
+    Console.WriteLine("Comandos: simular | limpar | memoria | diagnostico | modojogo [status|entrar|sair|testar]");
     return 1;
 }
 

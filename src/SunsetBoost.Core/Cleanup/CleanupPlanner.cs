@@ -14,6 +14,9 @@ public sealed record AppGroup(
     string? Note = null)
 {
     public long PrivateBytes => Processes.Sum(p => p.PrivateBytes);
+
+    /// <summary>Jogo, anti-cheat ou Riot Client: o app nunca abre esses processos, então a RAM deles é desconhecida (não zero).</summary>
+    public bool RamUnknown => Processes.Count > 0 && Processes.All(p => HandsOff.IsHandsOff(p.Name));
 }
 
 public sealed record CleanupPlan(GameProfile Profile, IReadOnlyList<AppGroup> Groups, SafetyContext Context)

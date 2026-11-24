@@ -18,9 +18,13 @@ public static class DiagnosticsService
         ("battle.net", "Battle.net"), ("msedge", "Edge"),
     };
 
-    public static IReadOnlyList<DiagItem> Run(IPowerPlans? power = null)
+    /// <param name="hardware">null = lê o PC de verdade.</param>
+    /// <param name="gpuPreferenceOn">Se "Placa de vídeo dedicada nos jogos" está ligada (null = não sei).</param>
+    public static IReadOnlyList<DiagItem> Run(IPowerPlans? power = null, IHardwareInfo? hardware = null, bool? gpuPreferenceOn = null)
     {
-        var items = new List<DiagItem>();
+        // Primeiro o hardware: é onde estão os ganhos grandes (Hz do monitor, XMP, dual channel, placa certa)
+        var hw = hardware ?? new RealHardwareInfo();
+        var items = HardwareChecks.Run(hw, DateTime.Today, gpuPreferenceOn);
 
         if (!Elevation.IsElevated)
             items.Add(new(DiagStatus.Recommend, "Abra o Sunset Boost como administrador",
@@ -42,23 +46,17 @@ public static class DiagnosticsService
             : new(DiagStatus.Recommend, $"{string.Join(", ", heavy)} abrindo junto com o Windows",
                 "Tire da inicialização em Gerenciador de Tarefas › Aplicativos de inicialização. Economiza memória desde o boot."));
 
-        // Plano de energia
-        try
-        {
-            var active = (power ?? new RealPowerPlans()).GetActive();
-            bool good = active == new Guid("8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c") || active == PowerPlanTweak.UltimatePerformance;
-            items.Add(good
-                ? new(DiagStatus.Ok, "Plano de energia: Alto desempenho", "Já está certo no seu PC.")
-                : new(DiagStatus.Recommend, "Plano de energia não é o de Alto desempenho",
-                    "Painel de Controle › Opções de Energia › Alto desempenho. Ou ligue o ajuste no Modo Jogo."));
-        }
+        // Plano de energia (notebook tem regra própria) e dicas de jogo com os números deste PC
+        bool? laptop = Safe(hw.HasBattery);
+        try { items.Add(HardwareChecks.PowerPlan((power ?? new RealPowerPlans()).GetActive(), laptop)); }
         catch { }
-
-        items.Add(new(DiagStatus.Info, "Painel de controle da NVIDIA, perfil do Valorant",
-            "Modo de baixa latência: Ligado · Gerenciamento de energia: Preferir desempenho máximo · Sincronização vertical: Desligado."));
-        items.Add(new(DiagStatus.Info, "Dentro do Valorant",
-            "Limite de FPS um pouco acima da taxa do monitor deixa o tempo de quadro mais estável que FPS ilimitado."));
+        items.AddRange(HardwareChecks.GameTips(Safe(hw.Displays) ?? Array.Empty<DisplayInfo>(), Safe(hw.Gpus) ?? Array.Empty<GpuInfo>()));
         return items;
+    }
+
+    private static T? Safe<T>(Func<T> f)
+    {
+        try { return f(); } catch { return default; }
     }
 
     private static IEnumerable<string> ReadRunKey(RegistryKey root)

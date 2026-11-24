@@ -30,6 +30,8 @@ public sealed class AppCardVm : Observable
     public string Id { get; }
     public string Name { get; }
     public string Ram { get; }
+    /// <summary>Dica do card quando a RAM não é medida (jogo e anti-cheat). Sem dica: null.</summary>
+    public string? RamHint { get; init; }
     public string Info { get; }
     public Brush Accent { get; }
     public bool Locked { get; }

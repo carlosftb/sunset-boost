@@ -42,6 +42,9 @@ public sealed class AppSettings
 
     /// <summary>Jogos que o usuário adicionou à prioridade alta fixa (nome do .exe), além dos conhecidos.</summary>
     public List<string> PriorityGames { get; set; } = new();
+
+    /// <summary>Jogos que o usuário adicionou à placa de vídeo dedicada (caminho completo do .exe), além dos achados sozinhos.</summary>
+    public List<string> GpuGames { get; set; } = new();
 }
 
 /// <summary>Lê e grava o settings.json com escrita atômica (nunca deixa o arquivo pela metade).</summary>

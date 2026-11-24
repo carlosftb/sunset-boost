@@ -36,8 +36,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Instalar leitor de QR
-        run: pip install --disable-pip-version-check zxing-cpp==3.1.1 pillow==13.0.0
+      - name: Instalar leitor de QR e conversor de Markdown
+        run: pip install --disable-pip-version-check zxing-cpp==3.1.1 pillow==13.0.0 cmarkgfm==2025.10.22 segno==1.6.6
+
+      - name: O verificador pega as formas conhecidas de mostrar outro Pix
+        run: python .github/scripts/testar-verificar-pix.py
 
       - name: QR, copia e cola e chave do README levam pra chave oficial
         run: python .github/scripts/verificar-pix.py
