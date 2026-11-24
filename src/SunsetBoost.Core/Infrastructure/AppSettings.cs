@@ -30,7 +30,7 @@ public sealed class AppSettings
 
     public string Hotkey { get; set; } = "Ctrl+Shift+B";
 
-    /// <summary>Chave "Limitar os navegadores": no Modo Jogo, segura a memória do Edge, Chrome e Opera GX no limite.
+    /// <summary>Chave "Limitar os navegadores": no Modo Jogo, segura a memória do Edge, Chrome e Opera (comum ou GX) no limite.
     /// Desligada, o app não mexe nos navegadores. Nenhum dos dois fecha o navegador.
     /// (O nome ficou do antigo "modo leve" pra não perder a escolha de quem já usava.)</summary>
     public bool EdgeLite { get; set; } = false;

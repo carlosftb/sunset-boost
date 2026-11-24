@@ -24,7 +24,7 @@ Jogos, anti-cheats e processos do Windows nunca são tocados.
 
 - **Mostra quem está comendo sua RAM**: memória, CPU e GPU em tempo real, e quanto dá pra liberar.
 - **Limpa antes da partida**: fecha launchers e apps que você não está usando. Você escolhe o que fecha.
-- **Navegadores sob controle**: o navegador nunca é fechado sozinho. Com a chave **Limitar os navegadores** ligada, o Edge, o Chrome e o Opera GX ficam em até 2 GB de RAM cada durante o Modo Jogo.
+- **Navegadores sob controle**: o navegador nunca é fechado sozinho. Com a chave **Limitar os navegadores** ligada, o Edge, o Chrome e o Opera (comum ou GX) ficam em até 2 GB de RAM cada durante o Modo Jogo. Passou disso, as abas mais pesadas são derrubadas e voltam ao recarregar.
 - **Modo Jogo**: limpa a memória em cache, pausa serviços pesados (indexação, SysMain, impressão), liga o plano de alto desempenho, desliga a gravação do Xbox e as notificações.
 - **Desfaz tudo**: antes de mudar qualquer coisa, salva uma cópia das suas configurações. **Restaurar tudo** volta exatamente como estava.
 - **Perfis por jogo**: Valorant, League of Legends, Steam, Epic. Cada perfil sabe quais launchers manter abertos.

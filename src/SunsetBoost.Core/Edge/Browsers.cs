@@ -11,7 +11,7 @@ public static class Browsers
     public static readonly BrowserDef Edge = new("edge", "Edge", "msedge");
     public static readonly BrowserDef Chrome = new("chrome", "Chrome", "chrome");
     /// <summary>Opera e Opera GX usam o mesmo opera.exe. As abas não mostram o "x" pro Windows: fecham com clique do meio.</summary>
-    public static readonly BrowserDef Opera = new("opera", "Opera GX", "opera", TabsClosable: false);
+    public static readonly BrowserDef Opera = new("opera", "Opera", "opera", TabsClosable: false);
 
     /// <summary>Os que a chave "Limitar os navegadores" segura no limite de RAM durante o Modo Jogo.</summary>
     public static readonly IReadOnlyList<BrowserDef> Limited = new[] { Edge, Chrome, Opera };

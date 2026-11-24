@@ -54,7 +54,7 @@ public class BrowsersTests
         var src = new FixedSource(P(4_000_010, "opera", mb: 800), P(4_000_011, "chrome", mb: 9000));
         var sim = new SimulatedSystemActions();
         var d = EdgeMemoryGuard.Enforce(2048 * MB, sim, src, Browsers.Opera);
-        Assert.Equal("Opera GX", d.Browser);
+        Assert.Equal("Opera", d.Browser);
         Assert.Empty(d.Kill);
         Assert.Empty(sim.Journal);
     }
@@ -100,10 +100,10 @@ public class BrowserRuleTests
     }
 
     [Fact]
-    public void Limite_vale_pro_Edge_Chrome_e_Opera_GX_com_2_GB()
+    public void Limite_vale_pro_Edge_Chrome_e_Opera_com_2_GB()
     {
         Assert.Equal(new[] { "msedge", "chrome", "opera" }, Browsers.Limited.Select(b => b.Process));
-        Assert.Equal("Edge, Chrome e Opera GX", Browsers.Names);
+        Assert.Equal("Edge, Chrome e Opera", Browsers.Names);
         Assert.Equal(2048, new Infrastructure.AppSettings().EdgeLimitMB);
     }
 }

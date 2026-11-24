@@ -5,7 +5,7 @@ namespace SunsetBoost.Core.Tests;
 
 /// <summary>
 /// Chrome de verdade, mas isolado: perfil temporário próprio (outra instância, não mexe no Chrome do usuário)
-/// e o modo leve só pode tocar nas janelas desses processos. Pula se o Chrome não estiver instalado.
+/// e o fechamento de abas (EdgeTabs) só pode tocar nas janelas desses processos. Pula se o Chrome não estiver instalado.
 /// </summary>
 [Trait("Category", "Integration")]
 [Trait("Requires", "Desktop")] // abre janelas de verdade: instável na máquina do CI, fica fora dele

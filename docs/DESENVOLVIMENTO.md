@@ -44,7 +44,8 @@ dotnet run --project src/SunsetBoost.Cli -- modojogo testar   # aplica tudo, con
 dotnet run --project src/SunsetBoost.Cli -- modojogo entrar
 dotnet run --project src/SunsetBoost.Cli -- modojogo sair
 
-# Teste manual do Edge leve (fecha as abas do SEU Edge menos a 1ª; pede pra digitar SIM)
+# Ferramenta de teste, o app não usa mais: fecha as abas do SEU navegador menos a 1ª (pede pra digitar SIM)
+# navleve edge | chrome | opera   (edgeleve = navleve edge)
 dotnet run --project src/SunsetBoost.Cli -- edgeleve
 ```
 

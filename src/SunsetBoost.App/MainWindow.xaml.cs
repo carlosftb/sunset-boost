@@ -291,7 +291,7 @@ public partial class MainWindow : Window
                 _settings.CloseApps, null, r => { _settings.CloseApps = r.IsOn; App.SaveSettings(); }),
             // Ligado = limite de RAM em cada navegador. Desligado = o app não mexe nos navegadores. Nunca fecha nenhum.
             new("limitar-navegadores", $"Limitar os navegadores a {(_settings.EdgeLimitMB / 1024.0):0.#} GB",
-                $"{Browsers.Names} · passou do limite, fecha as abas mais pesadas", "MÉDIO", Res("Orange"), Hex("#3A1500"),
+                $"{Browsers.Names} · passou do limite, derruba as abas mais pesadas", "MÉDIO", Res("Orange"), Hex("#3A1500"),
                 _settings.EdgeLite, null, r => { _settings.EdgeLite = r.IsOn; App.SaveSettings(); AppLog.Info($"Limite dos navegadores: {(r.IsOn ? "ligado" : "desligado")}"); }),
             new("standby", "Limpar standby list", "Como o ISLC · menos travadinhas", "MÉDIO", Res("Orange"), Hex("#3A1500"),
                 _settings.PurgeStandbyList, admin ? null : "precisa de admin · ", r => { _settings.PurgeStandbyList = r.IsOn; App.SaveSettings(); }),

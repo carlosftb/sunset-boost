@@ -27,7 +27,8 @@ if (command == "memoria")
 }
 if (command is "edgeleve" or "navleve")
 {
-    // Teste manual do modo leve: fecha as outras abas/janelas do SEU navegador, mantendo a 1ª aba da janela usada por último
+    // Ferramenta de teste (o app não usa mais: entrar no Modo Jogo não fecha abas). Fecha as outras abas/janelas do SEU
+    // navegador, mantendo a 1ª aba da janela usada por último
     //   navleve edge | navleve chrome | navleve opera   (edgeleve = navleve edge)
     var nav = command == "edgeleve" ? SunsetBoost.Core.Edge.Browsers.Edge
         : SunsetBoost.Core.Edge.Browsers.Find(args.Skip(1).FirstOrDefault(a => !a.StartsWith("--")) ?? "edge");
