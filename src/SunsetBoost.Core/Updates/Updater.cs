@@ -9,14 +9,17 @@ using System.Text.RegularExpressions;
 namespace SunsetBoost.Core.Updates;
 
 /// <summary>Uma versão publicada no GitHub, mais nova que a instalada.</summary>
-public sealed record UpdateInfo(Version Version, string Tag, string InstallerName, long InstallerSize, Uri InstallerUrl, Uri ShaUrl, Uri PageUrl, string Notes);
+public sealed record UpdateInfo(Version Version, string Tag, string InstallerName, long InstallerSize, Uri InstallerUrl, Uri ShaUrl, Uri SigUrl, Uri PageUrl, string Notes);
 
 /// <summary>
 /// Procura e baixa atualizações nas Releases do GitHub. Cuidados, porque o app roda com admin:
 /// <list type="bullet">
 /// <item>só o repositório oficial, por HTTPS; os endereços de download são montados aqui (não vêm da resposta);</item>
 /// <item>só arquivos com o nome exato do instalador; tamanho conferido e com limite;</item>
-/// <item>SHA-256 do arquivo baixado tem que bater com o .sha256 da mesma release;</item>
+/// <item>o .sha256 da release tem que estar assinado (.sig, ECDSA P-256) por uma chave de <see cref="UpdateKeys"/>:
+/// quem tiver acesso de escrita ao repositório troca o instalador e o .sha256, mas não faz a assinatura sem a chave privada;</item>
+/// <item>o .sha256 assinado tem que citar o nome exato do instalador (com a versão): não dá pra reaproveitar a assinatura de uma versão antiga;</item>
+/// <item>SHA-256 do arquivo baixado tem que bater com o .sha256 assinado;</item>
 /// <item>quem roda o instalador é o Windows, sem admin, com o aviso do UAC: o app nunca executa o download com admin.</item>
 /// </list>
 /// </summary>
@@ -35,7 +38,10 @@ public static class Updater
     internal const long MaxInstallerBytes = 300L * 1024 * 1024;
 
     private static readonly Regex TagRx = new(@"^v(\d+)\.(\d+)\.(\d+)$");
-    private static readonly Regex ShaRx = new(@"^\s*([0-9a-fA-F]{64})\b");
+    // Formato do sha256sum: "<hash>  <arquivo>" (ou "<hash> *<arquivo>"), uma linha só
+    private static readonly Regex SignedShaRx = new(@"^([0-9a-fA-F]{64}) [ *](\S+)\r?\n?$");
+
+    internal const int MaxSigBytes = 1024;
 
     /// <summary>Versão deste app (do &lt;Version&gt; do Directory.Build.props).</summary>
     public static Version Current
@@ -108,29 +114,36 @@ public static class Updater
             var basePath = $"https://github.com/{Owner}/{Repo}/releases";
             best = new UpdateInfo(ver, tag, name, size,
                 new Uri($"{basePath}/download/{tag}/{name}"), new Uri($"{basePath}/download/{tag}/{name}.sha256"),
-                new Uri($"{basePath}/tag/{tag}"), notes);
+                new Uri($"{basePath}/download/{tag}/{name}.sha256.sig"), new Uri($"{basePath}/tag/{tag}"), notes);
         }
         return best;
     }
 
     /// <summary>
-    /// Baixa o instalador pra <paramref name="folder"/> (com admin, uma pasta que só admin altera) e confere o SHA-256.
-    /// Devolve o caminho do instalador conferido. Qualquer diferença apaga o arquivo e lança exceção.
+    /// Baixa o instalador pra <paramref name="folder"/> (com admin, uma pasta que só admin altera), confere a assinatura
+    /// do .sha256 e o SHA-256 do instalador. Devolve o caminho do instalador conferido. Qualquer diferença apaga o arquivo e lança exceção.
     /// </summary>
-    public static async Task<string> DownloadAsync(HttpClient http, UpdateInfo info, string folder, IProgress<double>? progress = null, CancellationToken ct = default)
+    public static Task<string> DownloadAsync(HttpClient http, UpdateInfo info, string folder, IProgress<double>? progress = null, CancellationToken ct = default) =>
+        DownloadAsync(http, info, folder, UpdateKeys.Trusted, progress, ct);
+
+    /// <summary>Igual ao público, com as chaves aceitas vindas de fora (os testes usam uma chave própria).</summary>
+    internal static async Task<string> DownloadAsync(HttpClient http, UpdateInfo info, string folder, IReadOnlyList<string> trustedKeys,
+        IProgress<double>? progress = null, CancellationToken ct = default)
     {
+        if (trustedKeys.Count == 0)
+            throw new InvalidDataException("esta versão do app não tem a chave pública de atualização, então não aceita downloads automáticos");
+
         Directory.CreateDirectory(folder);
         // Restos de downloads anteriores saem antes (a pasta é só nossa)
         foreach (var old in Directory.GetFiles(folder, "SunsetBoost-Setup-*")) TryDelete(old);
 
-        string expected;
-        using (var shaResp = await http.GetAsync(info.ShaUrl, HttpCompletionOption.ResponseHeadersRead, ct))
-        {
-            EnsureAllowed(shaResp.RequestMessage?.RequestUri);
-            shaResp.EnsureSuccessStatusCode();
-            expected = ParseSha256(await ReadLimitedAsync(shaResp, 4096, ct))
-                       ?? throw new InvalidDataException("o arquivo .sha256 da release não tem um SHA-256 válido");
-        }
+        // Primeiro o .sha256 e a assinatura dele: sem assinatura válida, nem baixa o instalador
+        var shaBytes = await GetSmallAsync(http, info.ShaUrl, 4096, "o arquivo .sha256", ct);
+        var sigBytes = await GetSmallAsync(http, info.SigUrl, MaxSigBytes, "a assinatura (.sig)", ct);
+        if (!VerifySignature(shaBytes, sigBytes, trustedKeys))
+            throw new InvalidDataException("a assinatura da release não é válida: ela não foi publicada com a chave do Sunset Boost");
+        var expected = ParseSignedSha256(System.Text.Encoding.ASCII.GetString(shaBytes), info.InstallerName)
+                       ?? throw new InvalidDataException($"o .sha256 assinado não é do {info.InstallerName}");
 
         var target = Path.Combine(folder, info.InstallerName);
         var partial = target + ".partial";
@@ -179,11 +192,42 @@ public static class Updater
         }
     }
 
-    /// <summary>"abc123...  SunsetBoost-Setup-0.2.0.exe" → "ABC123..." (null se não for um SHA-256).</summary>
-    internal static string? ParseSha256(string content)
+    /// <summary>
+    /// Confere a assinatura ECDSA P-256 (SHA-256, DER em base64, como o workflow de release gera) dos bytes exatos do .sha256.
+    /// Basta uma das chaves aceitas bater. Assinatura mal formada ou chave que não é P-256 = inválida.
+    /// </summary>
+    internal static bool VerifySignature(byte[] data, byte[] sigFile, IEnumerable<string> trustedKeys)
     {
-        var m = ShaRx.Match(content ?? "");
-        return m.Success ? m.Groups[1].Value.ToUpperInvariant() : null;
+        byte[] sig;
+        try { sig = Convert.FromBase64String(System.Text.Encoding.ASCII.GetString(sigFile).Trim()); }
+        catch (FormatException) { return false; }
+        if (sig.Length == 0) return false;
+
+        foreach (var key in trustedKeys)
+        {
+            using var ecdsa = ECDsa.Create();
+            try
+            {
+                ecdsa.ImportSubjectPublicKeyInfo(Convert.FromBase64String(key), out _);
+                if (ecdsa.ExportParameters(false).Curve.Oid.Value != P256Oid) continue;
+                if (ecdsa.VerifyData(data, sig, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence)) return true;
+            }
+            catch (CryptographicException) { }
+            catch (FormatException) { }
+        }
+        return false;
+    }
+
+    private const string P256Oid = "1.2.840.10045.3.1.7";
+
+    /// <summary>
+    /// O .sha256 assinado tem que ser uma linha "&lt;hash&gt;  &lt;arquivo&gt;" com o nome exato do instalador esperado.
+    /// Devolve o hash em maiúsculas, ou null.
+    /// </summary>
+    internal static string? ParseSignedSha256(string content, string installerName)
+    {
+        var m = SignedShaRx.Match(content ?? "");
+        return m.Success && m.Groups[2].Value == installerName ? m.Groups[1].Value.ToUpperInvariant() : null;
     }
 
     internal static string HashFile(string path)
@@ -199,7 +243,20 @@ public static class Updater
             throw new InvalidDataException($"resposta veio de um endereço não esperado ({uri?.GetLeftPart(UriPartial.Authority) ?? "?"})");
     }
 
-    private static async Task<string> ReadLimitedAsync(HttpResponseMessage resp, long max, CancellationToken ct)
+    /// <summary>Baixa um arquivo pequeno da release (o .sha256 ou o .sig). Se faltar, diz qual.</summary>
+    private static async Task<byte[]> GetSmallAsync(HttpClient http, Uri url, long max, string what, CancellationToken ct)
+    {
+        using var resp = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
+        EnsureAllowed(resp.RequestMessage?.RequestUri);
+        if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) throw new InvalidDataException($"a release não tem {what}");
+        resp.EnsureSuccessStatusCode();
+        return await ReadLimitedBytesAsync(resp, max, ct);
+    }
+
+    private static async Task<string> ReadLimitedAsync(HttpResponseMessage resp, long max, CancellationToken ct) =>
+        System.Text.Encoding.UTF8.GetString(await ReadLimitedBytesAsync(resp, max, ct));
+
+    private static async Task<byte[]> ReadLimitedBytesAsync(HttpResponseMessage resp, long max, CancellationToken ct)
     {
         if (resp.Content.Headers.ContentLength > max) throw new InvalidDataException("resposta grande demais");
         await using var s = await resp.Content.ReadAsStreamAsync(ct);
@@ -211,7 +268,7 @@ public static class Updater
             if (ms.Length + n > max) throw new InvalidDataException("resposta grande demais");
             ms.Write(buf, 0, n);
         }
-        return System.Text.Encoding.UTF8.GetString(ms.ToArray());
+        return ms.ToArray();
     }
 
     private static void TryDelete(string path)

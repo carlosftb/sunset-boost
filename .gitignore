@@ -13,3 +13,7 @@ ferramentas/
 
 # Instalador gerado pelo empacotar.ps1
 artifacts/
+
+# Chave privada da assinatura das atualizações: nunca no repositório (docs/ASSINATURA.md)
+*.pem
+*.key

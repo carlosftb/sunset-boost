@@ -63,7 +63,7 @@ if (command == "diagnostico")
 }
 if (command == "atualizacao")
 {
-    // Procura versão nova no GitHub. Com --baixar-para <pasta>, baixa e confere o SHA-256 (nunca executa).
+    // Procura versão nova no GitHub. Com --baixar-para <pasta>, baixa e confere a assinatura e o SHA-256 (nunca executa).
     // --como 0.0.0 finge ser uma versão antiga (pra testar o download da versão atual).
     var current = Opt("--como") is { Length: > 0 } fake && Version.TryParse(fake, out var fv) ? fv : SunsetBoost.Core.Updates.Updater.Current;
     using var http = SunsetBoost.Core.Updates.Updater.CreateClient();
@@ -74,7 +74,7 @@ if (command == "atualizacao")
     if (Opt("--baixar-para") is { Length: > 0 } dir)
     {
         var path = await SunsetBoost.Core.Updates.Updater.DownloadAsync(http, info, dir);
-        Console.WriteLine($"Baixado e conferido (SHA-256 da release): {path}");
+        Console.WriteLine($"Baixado e conferido (assinatura e SHA-256): {path}");
     }
     return 0;
 }

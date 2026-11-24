@@ -17,6 +17,8 @@ jobs:
   release:
     name: Gerar instalador
     runs-on: windows-latest
+    # O segredo UPDATE_SIGNING_KEY fica no ambiente "release", que pode exigir a sua aprovação antes de rodar (docs/ASSINATURA.md)
+    environment: release
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
@@ -42,6 +44,41 @@ jobs:
         shell: pwsh
         run: ./empacotar.ps1 -Versao $env:VERSAO
 
+      # Assina os bytes exatos do .sha256 ("<hash>  SunsetBoost-Setup-X.Y.Z.exe"): o app só instala com essa assinatura.
+      # A chave privada só existe no segredo; ela entra por variável de ambiente só neste passo e nunca vai pro disco.
+      - name: Assinar o SHA-256
+        shell: pwsh
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: |
+          if (-not $env:UPDATE_SIGNING_KEY) { throw "Falta o segredo UPDATE_SIGNING_KEY no ambiente 'release' (veja docs/ASSINATURA.md)" }
+          $P256 = '1.2.840.10045.3.1.7'
+          $sha = "artifacts/SunsetBoost-Setup-$env:VERSAO.exe.sha256"
+          $data = [IO.File]::ReadAllBytes($sha)
+          $key = [Security.Cryptography.ECDsa]::Create()
+          try {
+            $key.ImportFromPem($env:UPDATE_SIGNING_KEY)
+            if ($key.ExportParameters($false).Curve.Oid.Value -ne $P256) { throw "A chave do segredo UPDATE_SIGNING_KEY não é ECDSA P-256" }
+            $sig = $key.SignData($data, [Security.Cryptography.HashAlgorithmName]::SHA256, [Security.Cryptography.DSASignatureFormat]::Rfc3279DerSequence)
+          } finally { $key.Dispose() }
+
+          # Confere com as chaves públicas embutidas no app: se o segredo e o app não combinam, ninguém conseguiria atualizar
+          $src = Get-Content src/SunsetBoost.Core/Updates/UpdateKeys.cs -Encoding utf8 | Where-Object { $_ -notmatch '^\s*//' }
+          $keys = [regex]::Matches(($src -join "`n"), '"(MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE[A-Za-z0-9+/]{86}==)"') | ForEach-Object { $_.Groups[1].Value }
+          if (-not $keys) { throw "UpdateKeys.Trusted está vazio: coloque a chave pública lá antes de lançar (docs/ASSINATURA.md)" }
+          $ok = $false
+          foreach ($k in $keys) {
+            $pub = [Security.Cryptography.ECDsa]::Create()
+            $read = 0
+            $pub.ImportSubjectPublicKeyInfo([Convert]::FromBase64String($k), [ref]$read)
+            if ($pub.VerifyData($data, $sig, [Security.Cryptography.HashAlgorithmName]::SHA256, [Security.Cryptography.DSASignatureFormat]::Rfc3279DerSequence)) { $ok = $true }
+            $pub.Dispose()
+          }
+          if (-not $ok) { throw "A assinatura não confere com nenhuma chave de UpdateKeys.Trusted: o segredo é de outro par de chaves" }
+
+          [IO.File]::WriteAllText("$sha.sig", [Convert]::ToBase64String($sig))
+          "Assinado: $sha.sig ($($keys.Count) chave(s) pública(s) no app)"
+
       - name: Notas da versão (do CHANGELOG.md)
         shell: pwsh
         run: |
@@ -62,4 +99,5 @@ jobs:
           if ($env:VERSAO -like '0.*') { $flags += '--prerelease' }   # antes da 1.0, aparece como pré-lançamento
           gh release create '${{ github.ref_name }}' @flags `
             --title "Sunset Boost $env:VERSAO" --notes-file release-notes.md `
-            "artifacts/SunsetBoost-Setup-$env:VERSAO.exe" "artifacts/SunsetBoost-Setup-$env:VERSAO.exe.sha256"
+            "artifacts/SunsetBoost-Setup-$env:VERSAO.exe" "artifacts/SunsetBoost-Setup-$env:VERSAO.exe.sha256" `
+            "artifacts/SunsetBoost-Setup-$env:VERSAO.exe.sha256.sig"

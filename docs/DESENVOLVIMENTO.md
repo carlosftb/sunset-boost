@@ -85,7 +85,7 @@ As imagens do instalador saem do `installer\gerar-imagens.ps1`.
    git tag v0.2.0
    git push origin v0.2.0
    ```
-3. O workflow **Release** testa, gera o instalador e cria a release como **rascunho**, com o instalador, o `.sha256` e as notas do CHANGELOG. Versões `0.x` saem como pré-lançamento.
+3. O workflow **Release** testa, gera o instalador, assina o `.sha256` e cria a release como **rascunho**, com o instalador, o `.sha256`, o `.sha256.sig` e as notas do CHANGELOG. Versões `0.x` saem como pré-lançamento. Sem a chave de assinatura configurada o workflow para: veja [ASSINATURA.md](ASSINATURA.md).
 4. Revise o rascunho na página de Releases e clique em **Publish release**.
 
 O instalador publicado sai sempre do GitHub Actions, nunca de um PC de desenvolvimento.

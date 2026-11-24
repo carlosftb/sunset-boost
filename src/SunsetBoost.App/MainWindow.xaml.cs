@@ -733,7 +733,7 @@ public partial class MainWindow : Window
         try
         {
             _installer = await Updater.DownloadAsync(Http.Value, u, App.Paths.UpdatesDir, progress);
-            AppLog.Info($"Atualizações: {u.InstallerName} baixado e conferido (SHA-256 da release)");
+            AppLog.Info($"Atualizações: {u.InstallerName} baixado e conferido (assinatura e SHA-256)");
         }
         catch (Exception ex)
         {
