@@ -17,7 +17,6 @@ CHAVE_OFICIAL = "f0db43bb-0fa4-4dd4-bceb-0eb4b3ba3bdd"
 
 RAIZ = Path(__file__).resolve().parents[2]
 README = RAIZ / "README.md"
-QR = RAIZ / "docs" / "img" / "pix-qr.png"
 
 erros: list[str] = []
 
@@ -77,16 +76,50 @@ if chave_readme is None:
 elif chave_readme != CHAVE_OFICIAL:
     erros.append(f"README: chave mostrada é {chave_readme!r}, a oficial é {CHAVE_OFICIAL!r}")
 
-lidos = zxingcpp.read_barcodes(Image.open(QR))
-qrs = [b.text for b in lidos if b.format == zxingcpp.BarcodeFormat.QRCode]
-if len(qrs) != 1:
-    erros.append(f"{QR.name}: esperava exatamente 1 QR code, achei {len(qrs)}")
-else:
-    texto_qr = qrs[0]
-    if chave_do_brcode(texto_qr, QR.name) != CHAVE_OFICIAL:
-        erros.append(f"{QR.name}: o QR leva pra outra chave, não pra {CHAVE_OFICIAL}")
-    if copia_e_cola is not None and texto_qr != copia_e_cola:
-        erros.append(f"{QR.name}: o conteúdo do QR é diferente do 'copia e cola' do README")
+# Confere TODAS as imagens que o README mostra, não só um nome de arquivo: trocar o <img src> por outra imagem
+# (com o QR de outra pessoa) também tem que falhar. Qualquer QR code em qualquer imagem tem que ser o Pix oficial.
+REF = re.compile(r"""!\[[^\]]*\]\(\s*<?([^)\s>]+)|<img[^>]*?\bsrc\s*=\s*["']?([^"'\s>]+)|\bsrcset\s*=\s*["']?([^"'>]+)|^\s*\[[^\]]+\]:\s*<?(\S+?)>?\s*$""",
+                 re.I | re.M)
+BADGES = ("https://img.shields.io/",)  # selos de texto: não dá pra esconder QR neles
+LEGIVEIS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"}
+
+refs: list[str] = []
+for m in REF.finditer(md):
+    if m.group(3):  # srcset="a.png 1x, b.png 2x"
+        refs += [c.strip().split()[0] for c in m.group(3).split(",") if c.strip()]
+    else:
+        refs.append(next(g for g in m.groups() if g))
+
+oficial_visto = False
+for ref in dict.fromkeys(refs):
+    if re.match(r"^[a-z][a-z0-9+.-]*:", ref, re.I) or ref.startswith("//"):
+        if not ref.startswith(BADGES):
+            erros.append(f"README: imagem externa {ref!r}: o CI não consegue conferir se ela tem um QR de outra chave")
+        continue
+    if not re.search(r"\.(png|jpe?g|gif|webp|bmp|svg)$", ref.split("?")[0].split("#")[0], re.I):
+        continue  # link reference que não é imagem
+    arq = (RAIZ / ref.split("?")[0].split("#")[0].lstrip("/")).resolve()
+    if RAIZ not in arq.parents:
+        erros.append(f"README: imagem fora do repositório {ref!r}")
+        continue
+    if not arq.is_file():
+        erros.append(f"README: imagem {ref!r} não existe")
+        continue
+    if arq.suffix.lower() not in LEGIVEIS:
+        erros.append(f"README: {ref!r} é {arq.suffix}, formato que o CI não consegue ler pra conferir QR code")
+        continue
+    for b in zxingcpp.read_barcodes(Image.open(arq)):
+        if b.format != zxingcpp.BarcodeFormat.QRCode:
+            continue
+        if chave_do_brcode(b.text, ref) != CHAVE_OFICIAL:
+            erros.append(f"{ref}: tem um QR code que não leva pra chave oficial {CHAVE_OFICIAL}")
+        elif copia_e_cola is not None and b.text != copia_e_cola:
+            erros.append(f"{ref}: o conteúdo do QR é diferente do 'copia e cola' do README")
+        else:
+            oficial_visto = True
+
+if not oficial_visto:
+    erros.append("README: nenhuma imagem mostra o QR code oficial do Pix")
 
 if copia_e_cola is not None and chave_do_brcode(copia_e_cola, "README copia e cola") != CHAVE_OFICIAL:
     erros.append(f"README: o 'copia e cola' leva pra outra chave, não pra {CHAVE_OFICIAL}")
@@ -96,4 +129,4 @@ if erros:
         print(f"::error::{e}")
     sys.exit(1)
 
-print(f"Pix ok: QR, copia e cola e chave do README apontam pra {CHAVE_OFICIAL}")
+print(f"Pix ok: {len(dict.fromkeys(refs))} imagens do README conferidas; QR, copia e cola e chave apontam pra {CHAVE_OFICIAL}")
