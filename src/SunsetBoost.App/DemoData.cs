@@ -30,15 +30,24 @@ internal static class DemoData
             G("onedrive", "OneDrive", CleanupList.CloseByDefault, "sincronização em segundo plano", true, 95),
             G("discord", "Discord", CleanupList.UserDecides, "comunicação", false, 230, 140, 60),
             G("spotify", "Spotify", CleanupList.UserDecides, "música / mídia", false, 180, 85),
-            G("valorant", "Valorant", CleanupList.NeverClose, "o jogo", false, 2100),
-            G("vgtray", "Vanguard", CleanupList.NeverClose, "anti-cheat", false, 12),
+            // Jogo e anti-cheat com 0, como no app de verdade: ele nunca abre esses processos, nem pra medir a RAM ("—")
+            G("valorant", "Valorant", CleanupList.NeverClose, "o jogo", false, 0),
+            G("vgtray", "Vanguard", CleanupList.NeverClose, "anti-cheat", false, 0),
             G("defender", "Microsoft Defender", CleanupList.NeverClose, "antivírus / segurança", false, 180),
             G("sunsetboost", "Sunset Boost", CleanupList.NeverClose, "o próprio Sunset Boost (ou quem o abriu)", false, 95),
         }, new SafetyContext());
     }
 
-    public static List<DiagItem> Diagnostics() => new()
-    {
+    public static List<DiagItem> Diagnostics() =>
+    [
+        new(DiagStatus.Recommend, "Tela principal a 60 Hz, mas aceita 144 Hz",
+            "É o ganho mais visível que existe: o jogo pode mostrar até 144 quadros por segundo em vez de 60. " +
+            "Configurações › Sistema › Tela › Vídeo avançado › Escolha uma taxa de atualização. " +
+            "Confira também se o cabo é DisplayPort ou HDMI 2.0+ (cabo velho limita os Hz)."),
+        new(DiagStatus.Recommend, "Memória RAM a 2133 MT/s, mas o pente é de 3200",
+            "O perfil XMP (Intel) ou EXPO/DOCP (AMD) está desligado na BIOS. Ligar costuma dar 10% a 20% mais FPS em jogos " +
+            "que dependem do processador (Valorant, LoL, CS2). Entre na BIOS (Del ou F2 ao ligar o PC) e ative o XMP/EXPO."),
+        new(DiagStatus.Ok, "Driver da NVIDIA GeForce RTX 3060 em dia", "Versão de 07/11/2026."),
         new(DiagStatus.Recommend, "Abra o Sunset Boost como administrador",
             "Sem admin, ele não consegue pausar serviços, limpar a standby list nem fechar apps elevados."),
         new(DiagStatus.Recommend, "Desligar o \"Startup boost\" do Edge",
@@ -46,10 +55,8 @@ internal static class DemoData
         new(DiagStatus.Recommend, "Steam e Discord abrindo junto com o Windows",
             "Tire da inicialização em Gerenciador de Tarefas › Aplicativos de inicialização. Economiza memória desde o boot."),
         new(DiagStatus.Ok, "Plano de energia: Alto desempenho", "Já está certo no seu PC."),
-        new(DiagStatus.Info, "Painel de controle da NVIDIA, perfil do Valorant",
-            "Modo de baixa latência: Ligado · Gerenciamento de energia: Preferir desempenho máximo · Sincronização vertical: Desligado."),
-        new(DiagStatus.Info, "Dentro do Valorant",
-            "Limite de FPS um pouco acima da taxa do monitor deixa o tempo de quadro mais estável que FPS ilimitado."),
-    };
+        // Mesmos textos que o verificador gera (HardwareChecks.GameTips) pra uma NVIDIA com tela de 144 Hz
+        .. HardwareChecks.GameTips(new[] { new DisplayInfo("Tela principal", 1920, 1080, 144, 144) }, new[] { new GpuInfo("NVIDIA GeForce RTX 3060", null) }),
+    ];
 }
 #endif

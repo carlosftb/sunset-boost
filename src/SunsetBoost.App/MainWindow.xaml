@@ -225,7 +225,7 @@
                         <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="4" VerticalAlignment="Top" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type local:AppCardVm}">
-                                <c:CutBorder Cut="TopRight" CutSize="18" Background="{StaticResource PanelSolid}" Margin="0,0,10,10" Height="96" Opacity="{Binding CardOpacity}">
+                                <c:CutBorder Cut="TopRight" CutSize="18" Background="{StaticResource PanelSolid}" Margin="0,0,10,10" Height="96" Opacity="{Binding CardOpacity}" ToolTip="{Binding RamHint}">
                                     <Grid>
                                         <Rectangle Width="4" HorizontalAlignment="Left" Fill="{Binding Accent}" />
                                         <StackPanel Margin="16,10,12,10">
@@ -330,10 +330,15 @@
                     </c:CutBorder>
                     <StackPanel Margin="6,0,0,0">
                         <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,0,0,8" Padding="16,8">
-                            <StackPanel>
-                                <TextBlock Text="⌨ ATALHO" FontFamily="{StaticResource LabelFont}" FontSize="17" Foreground="{StaticResource Cyan}" />
-                                <TextBlock x:Name="HotkeyText" Style="{StaticResource Small}" Foreground="{StaticResource White}" />
-                            </StackPanel>
+                            <!-- Ícone na coluna onde os outros cards têm a chave (40 + 14): o texto fica alinhado com o deles -->
+                            <DockPanel>
+                                <TextBlock Text="⌨" FontFamily="Segoe UI Symbol" FontSize="22" Foreground="{StaticResource Cyan}" Width="40" TextAlignment="Center"
+                                           DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" AutomationProperties.Name="Atalho" />
+                                <StackPanel>
+                                    <TextBlock Text="ATALHO" FontFamily="{StaticResource LabelFont}" FontSize="17" Foreground="{StaticResource Cyan}" />
+                                    <TextBlock x:Name="HotkeyText" Style="{StaticResource Small}" Foreground="{StaticResource White}" />
+                                </StackPanel>
+                            </DockPanel>
                         </c:CutBorder>
                         <c:CutBorder Style="{StaticResource PanelBox}" Padding="16,8">
                             <DockPanel>
@@ -355,6 +360,18 @@
                         <StackPanel>
                             <TextBlock Text="▲ PRIORIDADE ALTA FIXA" FontFamily="{StaticResource LabelFont}" FontSize="17" Foreground="{StaticResource Mint}" />
                             <TextBlock x:Name="PriorityText" Style="{StaticResource Small}" Foreground="{StaticResource White}" />
+                        </StackPanel>
+                    </DockPanel>
+                </c:CutBorder>
+                <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,8,12,0" Padding="16,8">
+                    <DockPanel>
+                        <CheckBox x:Name="GpuSwitch" AutomationProperties.Name="Placa de vídeo dedicada nos jogos" Style="{StaticResource Switch}" Click="GpuSwitch_Click" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <Button x:Name="AddGpuGame" Style="{StaticResource GhostButton}" Content="+ JOGO" FontSize="15" Padding="16,4"
+                                Click="AddGpuGame_Click" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0"
+                                ToolTip="Escolha o .exe de outro jogo. Escolher um que já está na lista tira ele." />
+                        <StackPanel>
+                            <TextBlock Text="▣ PLACA DE VÍDEO DEDICADA" FontFamily="{StaticResource LabelFont}" FontSize="17" Foreground="{StaticResource Cyan}" />
+                            <TextBlock x:Name="GpuText" Style="{StaticResource Small}" Foreground="{StaticResource White}" TextWrapping="Wrap" />
                         </StackPanel>
                     </DockPanel>
                 </c:CutBorder>
