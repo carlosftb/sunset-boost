@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Company>Sunset Boost</Company>
     <Product>Sunset Boost</Product>
     <!-- App pra liberar RAM não pode gastar RAM à toa -->
