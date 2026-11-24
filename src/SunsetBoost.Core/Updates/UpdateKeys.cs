@@ -14,6 +14,7 @@ public static class UpdateKeys
     /// </summary>
     public static readonly string[] Trusted =
     {
-        // Cole aqui a chave pública gerada conforme docs/ASSINATURA.md, entre aspas, seguida de vírgula.
+        // Chave de assinatura das releases (P-256), gerada pelo mantenedor em 23/11/2026
+        "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEYlK/scv430Mf45E0lBYRdIjSBA2CI6tsEcZlUgXb1kRdbP2eFLcGNQI8KlJ6EpsdGQQ4LZkGMb5OodRXytKq3w==",
     };
 }
