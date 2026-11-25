@@ -17,7 +17,7 @@ body:
     id: versao
     attributes:
       label: Versão do Sunset Boost
-      placeholder: "0.3.0"
+      placeholder: "0.4.0"
     validations:
       required: true
   - type: dropdown
