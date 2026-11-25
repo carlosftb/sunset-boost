@@ -108,18 +108,20 @@ public class EdgeStartupBoostTests
     }
 
     [Fact]
-    public void Restore_without_record_only_deletes_the_value()
+    public void Restore_without_record_changes_nothing()
     {
-        // Desligado por política antes do app (ou registro perdido): voltar ao padrão tira só o valor, nunca a chave
+        // Desligado por outro programa ou pela empresa (ou registro perdido): o app não apaga política que não criou
         var reg = new FakeMachineRegistry();
         reg.SetDword(P, V, 0);
+        int before = reg.Writes;
         var edge = new EdgeStartupBoost(new AppSettings(), reg);
 
         Assert.True(edge.IsOff());
-        Assert.True(edge.Restore().Ok);
+        Assert.False(edge.TurnedOffByApp);
+        Assert.False(edge.Restore().Ok);
 
-        Assert.Null(reg.GetDword(P, V));
-        Assert.True(reg.KeyExists(P));
+        Assert.Equal(before, reg.Writes);
+        Assert.Equal(0, reg.GetDword(P, V));
     }
 
     [Fact]
@@ -148,6 +150,7 @@ public class EdgeStartupBoostTests
         Assert.Null(settings.EdgeStartupBoostUndo);
 
         reg.SetDword(P, V, 0);
+        settings.EdgeStartupBoostUndo = new EdgeStartupBoostUndo { CreatedKey = true };
         int before = reg.Writes;
         Assert.True(edge.Restore().Ok);
         Assert.Equal(before, reg.Writes);
@@ -172,11 +175,11 @@ public class EdgeStartupBoostTests
     }
 
     [Fact]
-    public void Diagnose_when_off_is_ok_and_offers_restore_with_admin()
+    public void Diagnose_when_off_by_app_is_ok_and_offers_restore_with_admin()
     {
         var reg = new FakeMachineRegistry();
-        reg.SetDword(P, V, 0);
         var edge = new EdgeStartupBoost(new AppSettings(), reg);
+        Assert.True(edge.TurnOff().Ok);
 
         var admin = edge.Diagnose(elevated: true);
         Assert.Equal(DiagStatus.Ok, admin.Status);
@@ -186,6 +189,18 @@ public class EdgeStartupBoostTests
         var noAdmin = edge.Diagnose(elevated: false);
         Assert.Equal(DiagStatus.Ok, noAdmin.Status);
         Assert.Null(noAdmin.Action);
+    }
+
+    [Fact]
+    public void Diagnose_when_off_by_someone_else_has_no_button()
+    {
+        var reg = new FakeMachineRegistry();
+        reg.SetDword(P, V, 0);
+        var item = new EdgeStartupBoost(new AppSettings(), reg).Diagnose(elevated: true);
+
+        Assert.Equal(DiagStatus.Ok, item.Status);
+        Assert.Null(item.Action);
+        Assert.Contains("fora do Sunset Boost", item.Detail);
     }
 
     [Fact]

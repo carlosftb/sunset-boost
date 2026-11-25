@@ -131,29 +131,38 @@ public sealed class EdgeStartupBoost
         }
     }
 
+    /// <summary>O próprio app desligou (tem o registro do que havia antes). Sem isso, a política é de outro programa ou da empresa.</summary>
+    public bool TurnedOffByApp => _settings.EdgeStartupBoostUndo is not null;
+
     /// <summary>
     /// Volta ao padrão: põe de volta o valor que havia antes ou apaga só StartupBoostEnabled. A chave das políticas do Edge
     /// só sai se o app criou ela e ela ficou vazia; outras políticas do Edge nunca são tocadas.
+    /// Só age se foi o app que desligou: política de outro programa ou da empresa nunca é apagada.
     /// </summary>
     public EdgeBoostResult Restore()
     {
         var undo = _settings.EdgeStartupBoostUndo;
+        if (undo is null)
+        {
+            AppLog.Info("Startup boost do Edge: voltar ao padrão ignorado, quem desligou não foi o app");
+            return new(false, "O Startup boost do Edge não foi desligado pelo Sunset Boost: nada foi alterado");
+        }
         if (_settings.SimulationMode)
         {
-            AppLog.Info($"[simulação] Startup boost do Edge: {(undo?.PreviousValue is { } p ? $"gravaria {ValueName} = {p}" : $"apagaria HKLM\\{PolicyPath}\\{ValueName}")}");
+            AppLog.Info($"[simulação] Startup boost do Edge: {(undo.PreviousValue is { } p ? $"gravaria {ValueName} = {p}" : $"apagaria HKLM\\{PolicyPath}\\{ValueName}")}");
             return new(true, "Simulação: o Startup boost do Edge voltaria ao padrão (nada foi alterado)");
         }
         try
         {
-            if (undo?.PreviousValue is { } previous and not 0)
+            if (undo.PreviousValue is { } previous and not 0)
                 _reg.SetDword(PolicyPath, ValueName, previous);
             else
                 _reg.DeleteValue(PolicyPath, ValueName);
 
-            bool keyDeleted = undo?.CreatedKey == true && _reg.DeleteKeyIfEmpty(PolicyPath);
+            bool keyDeleted = undo.CreatedKey && _reg.DeleteKeyIfEmpty(PolicyPath);
             _settings.EdgeStartupBoostUndo = null;
             AppLog.Info($"Startup boost do Edge voltou ao padrão: " +
-                        (undo?.PreviousValue is { } v and not 0 ? $"{ValueName} = {v} de novo" : $"{ValueName} apagado") +
+                        (undo.PreviousValue is { } v and not 0 ? $"{ValueName} = {v} de novo" : $"{ValueName} apagado") +
                         (keyDeleted ? ", chave vazia criada pelo app apagada" : ""));
             return new(true, "Startup boost do Edge voltou ao padrão: a opção volta a valer nas configurações do Edge");
         }
@@ -164,12 +173,18 @@ public sealed class EdgeStartupBoost
         }
     }
 
-    /// <summary>Item da aba Diagnóstico. Com admin, ganha o botão DESLIGAR ou VOLTAR AO PADRÃO.</summary>
+    /// <summary>Item da aba Diagnóstico. Com admin, ganha o botão DESLIGAR, ou VOLTAR AO PADRÃO se foi o app que desligou.</summary>
     public DiagItem Diagnose(bool elevated)
     {
         bool off;
         try { off = IsOff(); }
         catch (Exception ex) { AppLog.Warn($"Startup boost do Edge: não consegui ler o registro: {ex.Message}"); off = false; }
+
+        // Sem admin, o settings.json é outro (o do usuário), então não dá pra saber quem desligou: cai no texto simples abaixo
+        if (off && elevated && !TurnedOffByApp)
+            return new(DiagStatus.Ok, "Startup boost do Edge desligado",
+                "O Edge não fica carregado na memória à toa. Quem desligou foi uma política de fora do Sunset Boost " +
+                "(outro programa ou a empresa), então o app não mexe nela.");
 
         if (off)
             return elevated
