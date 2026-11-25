@@ -78,6 +78,9 @@ public sealed record ProfileVm(string Id, string Name, string Detail, Brush Back
     public string A11yName => IsSelected ? $"{Name}, perfil ativo" : Name;
 }
 
-public sealed record DiagVm(string Mark, Brush MarkBrush, string Title, string Detail);
+public sealed record DiagVm(string Mark, Brush MarkBrush, string Title, string Detail, string? ActionId = null, string? ActionLabel = null)
+{
+    public System.Windows.Visibility ActionVisibility => ActionId is null ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+}
 
 public sealed record TopAppVm(string Name, string Ram, string Info, Brush RamBrush);

@@ -407,6 +407,9 @@
                                 <c:CutBorder Style="{StaticResource PanelBox}" Margin="0,0,0,10" Padding="14,10">
                                     <DockPanel>
                                         <TextBlock Text="{Binding Mark}" Foreground="{Binding MarkBrush}" FontFamily="{StaticResource TitleFont}" FontSize="18" Width="26" DockPanel.Dock="Left" />
+                                        <Button Style="{StaticResource GhostButton}" Content="{Binding ActionLabel}" Tag="{Binding ActionId}" Visibility="{Binding ActionVisibility}"
+                                                FontSize="15" Padding="16,4" Click="DiagAction_Click" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0"
+                                                AutomationProperties.Name="{Binding ActionLabel}" AutomationProperties.HelpText="{Binding Title}" />
                                         <StackPanel>
                                             <TextBlock Text="{Binding Title}" Foreground="{StaticResource White}" FontWeight="Bold" FontSize="14" />
                                             <TextBlock Text="{Binding Detail}" Foreground="#C3B0E3" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0" />

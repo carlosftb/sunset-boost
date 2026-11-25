@@ -47,6 +47,9 @@ public sealed class AppSettings
     /// <summary>Jogos que o usuário adicionou à placa de vídeo dedicada (caminho completo do .exe), além dos achados sozinhos.</summary>
     public List<string> GpuGames { get; set; } = new();
 
+    /// <summary>Startup boost do Edge desligado pelo app: o que havia antes, pra VOLTAR AO PADRÃO. null = o app não mexeu.</summary>
+    public Edge.EdgeStartupBoostUndo? EdgeStartupBoostUndo { get; set; }
+
     /// <summary>Procurar versão nova no GitHub ao abrir o app.</summary>
     public bool CheckUpdates { get; set; } = true;
 }
